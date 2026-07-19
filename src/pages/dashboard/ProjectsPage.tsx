@@ -26,7 +26,6 @@ export default function ProjectsPage() {
 
       try {
         const response = await projectsService.getAll();
-        console.log('API Response:', response);
         if (!isMounted) return;
         setProjects(response.projects ?? []);
       } catch (err) {
@@ -64,8 +63,6 @@ export default function ProjectsPage() {
       teamSize: Number(formData.get('teamSize') || 3),
       clubName: user?.club || 'CampusOS',
     };
-
-    console.log('Sending payload to API:', payload);
 
     if (!payload.title || !payload.description) {
       toast({
