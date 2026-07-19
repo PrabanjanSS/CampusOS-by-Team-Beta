@@ -16,24 +16,28 @@ const podiumColors = ['#F59E0B', '#9CA3AF', '#CD7F32'];
 export default function LeaderboardPage() {
   const { user } = useAuth();
   const [selectedMemberName, setSelectedMemberName] = useState<string | null>(null);
-  const [leaderboardData, setLeaderboardData] = useState(mockLeaderboard);
+  const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
       // Check if user is in demo mode
       const isDemoMode = user?.id === 'demo';
+      console.log('Leaderboard fetch - User ID:', user?.id, 'Is Demo Mode:', isDemoMode);
 
       if (isDemoMode) {
         // Use mock data for demo mode
+        console.log('Using mock data for demo mode');
         setLeaderboardData(mockLeaderboard);
         setLoading(false);
         return;
       }
 
       // For logged-in users, always use backend data
+      console.log('Fetching from backend for real user');
       try {
         const response = await api.get('/leaderboard');
+        console.log('Backend response:', response.data);
         if (response.data.success && response.data.leaderboard.length > 0) {
           // Transform backend data to match expected format
           const transformedData = response.data.leaderboard
@@ -45,9 +49,11 @@ export default function LeaderboardPage() {
               avatarUrl: item.profilePicture || '',
               points: item.points || 0,
             }));
+          console.log('Transformed data:', transformedData);
           setLeaderboardData(transformedData);
         } else {
           // Backend returned empty - show empty state for real users
+          console.log('Backend returned empty data');
           setLeaderboardData([]);
         }
       } catch (error) {
