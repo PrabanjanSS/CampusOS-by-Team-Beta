@@ -1,160 +1,67 @@
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  updateProfile,
-} from "firebase/auth";
-
-import { auth } from "../firebase";
-
-import type {
-  AuthSession,
-  LoginPayload,
-  RegisterPayload,
-  User,
-} from "../types";
+import { auth } from '../firebase';
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword 
+} from 'firebase/auth';
+import { api } from './api';
+import type { LoginPayload, RegisterPayload, AuthSession } from '../types';
 
 export const authService = {
-  async login(
-    payload: LoginPayload
-  ): Promise<AuthSession> {
-
-    const credential =
-      await signInWithEmailAndPassword(
-        auth,
-        payload.email,
-        payload.password
-      );
-
-    const firebaseUser =
-      credential.user;
-
-    const token =
-      await firebaseUser.getIdToken();
-
-    // Auto-detect role from stored mapping or use provided role as fallback
-    const roleMap = JSON.parse(localStorage.getItem('campusos_role_map') || '{}');
-    const detectedRole = roleMap[payload.email.toLowerCase()] || payload.role;
-
-    const user: User = {
-      id: firebaseUser.uid,
-
-      name:
-        firebaseUser.displayName ??
-        "Campus User",
-
-      email:
-        firebaseUser.email ?? "",
-
-      role: detectedRole,
-
-      department: "",
-
-      year: "",
-    };
-
-    return {
-      token,
-      user,
-    };
-  },
-
-  async register(
-    payload: RegisterPayload
-  ): Promise<AuthSession> {
-
-    const credential =
-      await createUserWithEmailAndPassword(
-        auth,
-        payload.email,
-        payload.password
-      );
-
-    await updateProfile(
-      credential.user,
-      {
-        displayName:
-          payload.name,
-      }
+  
+  async register(payload: RegisterPayload): Promise<AuthSession> {
+    // 1. Create the user in Firebase Authentication
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      payload.email,
+      payload.password
     );
 
-    // Store role mapping for auto-detection during login
-    const roleMap = JSON.parse(localStorage.getItem('campusos_role_map') || '{}');
-    roleMap[payload.email.toLowerCase()] = payload.role;
-    localStorage.setItem('campusos_role_map', JSON.stringify(roleMap));
+    // 2. Send the newly created Firebase user data to your backend database
+    console.log("PAYLOAD LEAVING FRONTEND:", {
+  fullName: payload.fullName,
+  year: payload.year
+});
+      const { data } = await api.post('/auth/register', {
+        firebaseUid: userCredential.user.uid,
+        fullName: payload.fullName,
+        email: payload.email,
+        department: payload.department,
+        year: payload.year,
+        password: payload.password,
+        role: payload.role
+      });
 
-    const token =
-      await credential.user.getIdToken();
-
-    const user: User = {
-      id:
-        credential.user.uid,
-
-      name:
-        payload.name,
-
-      email:
-        payload.email,
-
-      role:
-        payload.role,
-
-      department:
-        payload.department,
-
-      year:
-        payload.year,
-    };
-
-    return {
-      token,
-      user,
-    };
+    return data;
   },
 
-  async googleLogin(
-    firebaseUser: any
-  ): Promise<AuthSession> {
-
-    const token =
-      await firebaseUser.getIdToken();
-
-    const user: User = {
-      id:
-        firebaseUser.uid,
-
-      name:
-        firebaseUser.displayName ??
-        "Google User",
-
-      email:
-        firebaseUser.email ?? "",
-
-      role:
-        "member",
-
-      department: "",
-
-      year: "",
-    };
-
-    return {
-      token,
-      user,
-    };
-  },
-
-  async getProfile() {
-    throw new Error(
-      "Profile endpoint not connected."
+  async login(payload: LoginPayload): Promise<AuthSession> {
+    // 1. Verify credentials with Firebase
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      payload.email,
+      payload.password
     );
+
+    // 2. Fetch the user's profile and JWT token from your backend
+    const { data } = await api.post('/auth/login', {
+      email: payload.email,
+      password: payload.password,
+      firebaseUid: userCredential.user.uid
+    });
+
+    return data;
   },
 
-  async getDashboard() {
-    throw new Error(
-      "Dashboard endpoint not connected."
-    );
-  },
+  async googleLogin(firebaseUser: any): Promise<AuthSession> {
+    // For Google login, the user is already authenticated with Firebase.
+    // We just need to sync them with your backend.
+    const { data } = await api.post('/auth/google', {
+      firebaseUid: firebaseUser.uid,
+      email: firebaseUser.email,
+      name: firebaseUser.displayName,
+      avatar: firebaseUser.photoURL
+    });
+    
+    return data;
+  }
 };
-
-export default authService;
-

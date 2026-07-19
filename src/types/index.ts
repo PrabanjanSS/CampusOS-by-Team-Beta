@@ -6,7 +6,7 @@ export interface User {
   email: string;
   role: Role;
   department: string;
-  year: string;
+  year: string | number; 
   club?: string;
   avatarUrl?: string;
   bio?: string;
@@ -57,10 +57,10 @@ export interface LoginPayload {
 }
 
 export interface RegisterPayload {
-  name: string;
+  fullName: string;
   email: string;
   department: string;
-  year: string;
+  year: number;
   password: string;
   role: Role;
 }
