@@ -4,7 +4,7 @@ import {
   ArrowRight,  ShieldCheck, Crown, Users,
    CalendarDays, FolderKanban, Trophy,
 } from 'lucide-react';
-import { ROLES, APP_NAME, APP_TAGLINE, APP_DESCRIPTION, LANDING_STATS } from '../utils/constants';
+import { ROLES, APP_NAME, APP_DESCRIPTION, LANDING_STATS } from '../utils/constants';
 import type { Role } from '../types';
 import { AuroraBackground } from '../components/layout/AuroraBackground';
 
@@ -97,9 +97,6 @@ export default function Landing() {
 </div>
           <div>
             <span className="text-lg font-bold tracking-tight text-ink">{APP_NAME}</span>
-            <span className="ml-2 hidden rounded-full border border-border-soft bg-white/70 px-2.5 py-0.5 text-[0.7rem] font-medium text-ink-soft sm:inline">
-              {APP_DESCRIPTION}
-            </span>
           </div>
         </div>
         <div className="hidden items-center gap-8 text-sm font-medium text-ink-soft md:flex">
@@ -117,16 +114,6 @@ export default function Landing() {
 
       {/* ── Hero ────────────────────────────────────────────── */}
       <section className="relative z-10 mx-auto max-w-7xl px-6 pb-10 pt-16 text-center sm:pt-24">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, type: 'spring', stiffness: 200, damping: 24 }}
-          className="mx-auto inline-flex items-center gap-2 rounded-full border border-border-soft bg-white/70 px-4 py-1.5 text-xs font-semibold text-navy backdrop-blur"
-        >
-          <span className="flex h-1.5 w-1.5 rounded-full bg-success" />
-          {APP_TAGLINE}
-        </motion.div>
-
         <motion.h1
   initial={{ opacity: 0, y: 24 }}
   animate={{ opacity: 1, y: 0 }}
@@ -211,17 +198,13 @@ export default function Landing() {
                 transition={{ delay: i * 0.1, type: 'spring', stiffness: 200, damping: 22 }}
                 whileHover={{ y: -8 }}
               >
-                <Link to={role.loginPath} className="gradient-border group block rounded-3xl">
-                  <div className="relative overflow-hidden rounded-3xl border border-white/60 bg-white/70 p-7 shadow-card backdrop-blur-xl transition-shadow duration-300 group-hover:shadow-lift">
-                    <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-navy/8 blur-2xl transition-all duration-500 group-hover:scale-125 group-hover:bg-navy/14" />
+                <Link to={role.loginPath} className="group block rounded-3xl">
+                  <div className="relative overflow-hidden rounded-3xl border border-border-soft bg-white p-7 shadow-card transition-shadow duration-300 group-hover:shadow-lift">
                     <div className="relative">
-                      <div className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${role.gradient} text-white shadow-soft transition-transform duration-300 group-hover:rotate-3 group-hover:scale-110`}>
+                      <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-navy text-white shadow-soft">
                         <RoleIcon className="h-7 w-7" />
                       </div>
-                      <p className="mt-5 text-xs font-semibold uppercase tracking-wider text-[#8a6d3b]">
-                        {role.tagline}
-                      </p>
-                      <h3 className="mt-1 text-xl font-bold text-ink">{role.title}</h3>
+                      <h3 className="mt-5 text-xl font-bold text-ink">{role.title}</h3>
                       <p className="mt-3 text-sm leading-relaxed text-ink-soft">{role.description}</p>
                       <div className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-navy transition-all group-hover:gap-2.5">
                         Continue as {buttonLabels[roleKey]}
@@ -253,16 +236,13 @@ export default function Landing() {
         <div className="grid gap-6 md:grid-cols-3">
           {features.map((f, i) => (
             <FadeUpItem key={f.title} delay={i * 0.1}>
-              <motion.div
-                whileHover={{ y: -4 }}
-                className="card-surface p-6 transition-shadow hover:shadow-lift"
-              >
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sand/25 text-[#8a6d3b]">
+              <div className="rounded-xl border border-border-soft bg-white p-6 shadow-card transition-shadow hover:shadow-lift">
+                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-navy text-white">
                   <f.icon className="h-5 w-5" />
                 </div>
                 <h3 className="mt-4 text-base font-semibold text-ink">{f.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-ink-soft">{f.desc}</p>
-              </motion.div>
+              </div>
             </FadeUpItem>
           ))}
         </div>
@@ -270,7 +250,7 @@ export default function Landing() {
 
       {/* ── Stats ────────────────────────────────────────────── */}
       <section id="stats" className="relative z-10 mx-auto max-w-5xl px-6 py-16">
-        <div className="grid grid-cols-2 gap-6 rounded-3xl border border-border-soft bg-white/70 p-8 backdrop-blur md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-6 rounded-xl border border-border-soft bg-white p-8 shadow-card md:grid-cols-4">
           {LANDING_STATS.map((s, i) => (
             <motion.div
               key={s.label}
@@ -291,7 +271,6 @@ export default function Landing() {
       <section className="relative z-10 overflow-hidden bg-cream py-24">
 
         <div className="mx-auto mb-14 max-w-3xl text-center">
-
           <h2 className="mt-5 text-5xl font-bold tracking-tight text-ink">
             Campus Moments ✨
           </h2>
@@ -301,77 +280,31 @@ export default function Landing() {
             AI workshops, cultural festivals, club activities,
             competitions and student achievements.
           </p>
-
         </div>
 
-        <div className="relative mt-16">
-
-          {/* Left Fade */}
-          <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-28 bg-gradient-to-r from-cream to-transparent" />
-
-          {/* Right Fade */}
-          <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-28 bg-gradient-to-l from-cream to-transparent" />
-        </div>
-
-        {/* First Row */}
-        <motion.div
-          animate={{ x: ["0%", "-50%"] }}
-          transition={{
-            repeat: Infinity,
-            ease: "linear",
-            duration: 55,
-          }}
-          className="flex gap-8"
-        >
-          {[...galleryImages, ...galleryImages].map((item, index) => (
-
+        {/* Gallery */}
+        <div className="flex gap-6 overflow-x-auto pb-4">
+          {galleryImages.map((item, index) => (
             <div
               key={index}
-              className="
-              group
-              relative
-              h-80
-              w-[460px]
-              shrink-0
-              overflow-hidden
-              rounded-[32px]
-              shadow-xl
-              transition-all
-              duration-500
-              hover:-translate-y-2
-              hover:shadow-2xl
-              "
+              className="group relative h-72 w-96 shrink-0 overflow-hidden rounded-xl shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
             >
-
               <img
                 src={item.image}
                 alt={item.title}
-                className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
+                className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
               />
 
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-100">
-
-                <div className="absolute bottom-6 left-6">
-
-                  <h3 className="text-3xl font-bold text-white drop-shadow-lg">
-
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-100">
+                <div className="absolute bottom-4 left-4">
+                  <h3 className="text-xl font-bold text-white drop-shadow-lg">
                     {item.title}
-
                   </h3>
-
-                  <p className="mt-1 text-base text-white/90">
-                    Experience • Innovation • Collaboration
-                  </p>
-
                 </div>
-
               </div>
-
             </div>
-
           ))}
-
-        </motion.div>
+        </div>
 
       </section>
 
