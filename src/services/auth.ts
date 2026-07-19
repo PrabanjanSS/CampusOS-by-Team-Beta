@@ -16,22 +16,37 @@ export const authService = {
       payload.password
     );
 
-    // 2. Send the newly created Firebase user data to your backend database
-    console.log("PAYLOAD LEAVING FRONTEND:", {
-  fullName: payload.fullName,
-  year: payload.year
-});
-      const { data } = await api.post('/auth/register', {
-        firebaseUid: userCredential.user.uid,
-        fullName: payload.fullName,
-        email: payload.email,
-        department: payload.department,
-        year: payload.year,
-        password: payload.password,
-        role: payload.role
-      });
+    const firebaseUser =
+      credential.user;
 
-    return data;
+    const token =
+      await firebaseUser.getIdToken();
+
+    // Auto-detect role from stored mapping or use provided role as fallback
+    const roleMap = JSON.parse(localStorage.getItem('campusos_role_map') || '{}');
+    const detectedRole = roleMap[payload.email.toLowerCase()] || payload.role;
+
+    const user: User = {
+      id: firebaseUser.uid,
+
+      name:
+        firebaseUser.displayName ??
+        "Campus User",
+
+      email:
+        firebaseUser.email ?? "",
+
+      role: detectedRole,
+
+      club: "",
+
+      year: "",
+    };
+
+    return {
+      token,
+      user,
+    };
   },
 
   async login(payload: LoginPayload): Promise<AuthSession> {
@@ -42,26 +57,86 @@ export const authService = {
       payload.password
     );
 
-    // 2. Fetch the user's profile and JWT token from your backend
-    const { data } = await api.post('/auth/login', {
-      email: payload.email,
-      password: payload.password,
-      firebaseUid: userCredential.user.uid
-    });
+    await updateProfile(
+      credential.user,
+      {
+        displayName:
+          payload.name,
+      }
+    );
+
+    // Store role mapping for auto-detection during login
+    const roleMap = JSON.parse(localStorage.getItem('campusos_role_map') || '{}');
+    roleMap[payload.email.toLowerCase()] = payload.role;
+    localStorage.setItem('campusos_role_map', JSON.stringify(roleMap));
+
+    const token =
+      await credential.user.getIdToken();
+
+    const user: User = {
+      id:
+        credential.user.uid,
+
+      name:
+        payload.name,
+
+      email:
+        payload.email,
+
+      role:
+        payload.role,
+
+      club:
+        payload.club,
+
+      year:
+        payload.year,
+    };
 
     return data;
   },
 
-  async googleLogin(firebaseUser: any): Promise<AuthSession> {
-    // For Google login, the user is already authenticated with Firebase.
-    // We just need to sync them with your backend.
-    const { data } = await api.post('/auth/google', {
-      firebaseUid: firebaseUser.uid,
-      email: firebaseUser.email,
-      name: firebaseUser.displayName,
-      avatar: firebaseUser.photoURL
-    });
-    
-    return data;
-  }
+  async googleLogin(
+    firebaseUser: any
+  ): Promise<AuthSession> {
+
+    const token =
+      await firebaseUser.getIdToken();
+
+    const user: User = {
+      id:
+        firebaseUser.uid,
+
+      name:
+        firebaseUser.displayName ??
+        "Google User",
+
+      email:
+        firebaseUser.email ?? "",
+
+      role:
+        "member",
+
+      club: "",
+
+      year: "",
+    };
+
+    return {
+      token,
+      user,
+    };
+  },
+
+  async getProfile() {
+    throw new Error(
+      "Profile endpoint not connected."
+    );
+  },
+
+  async getDashboard() {
+    throw new Error(
+      "Dashboard endpoint not connected."
+    );
+  },
 };

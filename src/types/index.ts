@@ -5,9 +5,8 @@ export interface User {
   name: string;
   email: string;
   role: Role;
-  department: string;
-  year: string | number; 
-  club?: string;
+  club: string;
+  year: string;
   avatarUrl?: string;
   bio?: string;
   coverTheme?: 'navy' | 'violet' | 'emerald' | 'sunset' | 'tech' | 'design' | 'campus' | 'abstract';
@@ -59,8 +58,8 @@ export interface LoginPayload {
 export interface RegisterPayload {
   fullName: string;
   email: string;
-  department: string;
-  year: number;
+  club: string;
+  year: string;
   password: string;
   role: Role;
 }
@@ -155,7 +154,7 @@ export interface ClubMember {
   id: string;
   name: string;
   role: string;
-  department: string;
+  club: string;
   joinedDate: string;
   avatarUrl?: string;
   points: number;
@@ -179,7 +178,7 @@ export interface ClubOverview {
   members: number;
   eventsThisMonth: number;
   status: 'active' | 'inactive' | 'pending';
-  department: string;
+  club: string;
   performance: number;
 }
 

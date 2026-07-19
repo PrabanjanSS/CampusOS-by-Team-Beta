@@ -17,7 +17,10 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: true
         },
-        department: {
+
+
+        club: {
+
             type: String,
             required: true
         },

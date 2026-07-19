@@ -119,7 +119,7 @@ const memberStats: StatCardType[] = [
             </h1>
             <p className="mt-1.5 text-sm text-ink-soft">
               {user?.club && <><span className="font-medium text-ink">{user.club}</span> · </>}
-              {user?.department} · {user?.year}
+              {user?.year}
             </p>
           </div>
           <div className="flex gap-2.5">
@@ -292,7 +292,7 @@ const memberStats: StatCardType[] = [
               <div className="flex flex-col items-center p-2 text-center">
                 <Avatar name={user?.name ?? 'User'} src={user?.avatarUrl} size="xl" ring className="shadow-card" />
                 <h3 className="mt-3 text-base font-bold text-ink">{user?.name}</h3>
-                <p className="text-xs text-ink-soft">{user?.department} · {user?.year}</p>
+                <p className="text-xs text-ink-soft">{user?.club} · {user?.year}</p>
                 <div className="mt-2 flex flex-wrap justify-center gap-1.5">
                  {user?.badges?.length === 0 ? (
   <Badge tone="neutral">No badges yet</Badge>

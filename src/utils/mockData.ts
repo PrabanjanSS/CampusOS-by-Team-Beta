@@ -99,9 +99,8 @@ export const mockMemberUser: User = {
   name: 'Priya Sharma',
   email: 'priya.sharma@campusos.app',
   role: 'member',
-  department: 'Computer Science',
+  club: 'GDG',
   year: '2nd Year',
-  club: 'Developers Club',
   bio: 'Frontend developer and open-source contributor. Passionate about building tools that make learning accessible for everyone.',
   avatarUrl: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=256&h=256&fit=crop',
   skills: ['React', 'TypeScript', 'Figma', 'Python', 'Git'],
@@ -124,9 +123,8 @@ export const mockLeadUser: User = {
   name: 'Aarav Mehta',
   email: 'aarav.mehta@campusos.app',
   role: 'lead',
-  department: 'Computer Science',
+  club: 'GDG',
   year: '3rd Year',
-  club: 'Developers Club',
   bio: 'Full-stack tinkerer and design enthusiast. Leading the Developers Club to ship student-built products that outlast a semester.',
   avatarUrl: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=256&h=256&fit=crop',
   skills: ['React', 'TypeScript', 'UI/UX', 'Node.js', 'Figma', 'Public Speaking'],
@@ -153,7 +151,7 @@ export const mockFacultyUser: User = {
   name: 'Dr. Meera Arora',
   email: 'meera.arora@campusos.app',
   role: 'faculty',
-  department: 'Computer Science',
+  club: 'GDG',
   year: 'Faculty',
   designation: 'Associate Professor & Club Coordinator',
   overseesClubs: ['Developers Club', 'Design Club', 'Robotics Club', 'Debate Society'],
@@ -189,11 +187,11 @@ export const mockLeadStats: StatCard[] = [
 ];
 
 export const mockClubMembers: ClubMember[] = [
-  { id: 'cm1', name: 'Priya Sharma',   role: 'Frontend Dev',    department: 'CS',      joinedDate: 'Jan 2025', points: 980,  status: 'active', avatarUrl: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=128&h=128&fit=crop' },
-  { id: 'cm2', name: 'Rohan Gupta',    role: 'Backend Dev',     department: 'CS',      joinedDate: 'Jan 2025', points: 860,  status: 'active', avatarUrl: 'https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&w=128&h=128&fit=crop'     },
-  { id: 'cm3', name: 'Diya Patel',     role: 'UI Designer',     department: 'Design',  joinedDate: 'Feb 2025', points: 740,  status: 'active', avatarUrl: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=128&h=128&fit=crop'   },
-  { id: 'cm4', name: 'Kabir Nair',     role: 'DevOps',          department: 'CS',      joinedDate: 'Mar 2025', points: 620,  status: 'active', avatarUrl: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=128&h=128&fit=crop' },
-  { id: 'cm5', name: 'Sara Khan',      role: 'Content Writer',  department: 'English', joinedDate: 'Feb 2025', points: 510,  status: 'active', avatarUrl: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=128&h=128&fit=crop' },
+  { id: 'cm1', name: 'Priya Sharma',   role: 'Frontend Dev',    club: 'GDG',      joinedDate: 'Jan 2025', points: 980,  status: 'active', avatarUrl: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=128&h=128&fit=crop' },
+  { id: 'cm2', name: 'Rohan Gupta',    role: 'Backend Dev',     club: 'IEEE',     joinedDate: 'Jan 2025', points: 860,  status: 'active', avatarUrl: 'https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&w=128&h=128&fit=crop'     },
+  { id: 'cm3', name: 'Diya Patel',     role: 'UI Designer',     club: 'GDG',      joinedDate: 'Feb 2025', points: 740,  status: 'active', avatarUrl: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=128&h=128&fit=crop'   },
+  { id: 'cm4', name: 'Kabir Nair',     role: 'DevOps',          club: 'IEEE',     joinedDate: 'Mar 2025', points: 620,  status: 'active', avatarUrl: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=128&h=128&fit=crop' },
+  { id: 'cm5', name: 'Sara Khan',      role: 'Content Writer',  club: 'GDG',      joinedDate: 'Feb 2025', points: 510,  status: 'active', avatarUrl: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=128&h=128&fit=crop' },
 ];
 
 export const mockPendingApprovals: PendingApproval[] = [
@@ -218,12 +216,12 @@ export const mockFacultyStats: StatCard[] = [
 ];
 
 export const mockClubOverviews: ClubOverview[] = [
-  { id: 'co1', name: 'Developers Club',  lead: 'Aarav Mehta',    members: 48, eventsThisMonth: 5, status: 'active',  department: 'CS',      performance: 92 },
-  { id: 'co2', name: 'Design Club',      lead: 'Diya Sharma',    members: 32, eventsThisMonth: 3, status: 'active',  department: 'Design',  performance: 87 },
-  { id: 'co3', name: 'Robotics Club',    lead: 'Kabir Nair',     members: 40, eventsThisMonth: 4, status: 'active',  department: 'ECE',     performance: 78 },
-  { id: 'co4', name: 'Debate Society',   lead: 'Vikram Pai',     members: 28, eventsThisMonth: 2, status: 'active',  department: 'Arts',    performance: 83 },
-  { id: 'co5', name: 'Music Club',       lead: 'Ananya Reddy',   members: 35, eventsThisMonth: 1, status: 'active',  department: 'Arts',    performance: 71 },
-  { id: 'co6', name: 'Photography Club', lead: 'Sara Khan',      members: 22, eventsThisMonth: 2, status: 'pending', department: 'Design',  performance: 65 },
+  { id: 'co1', name: 'GDG',             lead: 'Aarav Mehta',    members: 48, eventsThisMonth: 5, status: 'active',  club: 'GDG',      performance: 92 },
+  { id: 'co2', name: 'GDG',             lead: 'Diya Sharma',    members: 32, eventsThisMonth: 3, status: 'active',  club: 'GDG',      performance: 87 },
+  { id: 'co3', name: 'IEEE',            lead: 'Kabir Nair',     members: 40, eventsThisMonth: 4, status: 'active',  club: 'IEEE',     performance: 78 },
+  { id: 'co4', name: 'CodeChef',        lead: 'Vikram Pai',     members: 28, eventsThisMonth: 2, status: 'active',  club: 'CodeChef', performance: 83 },
+  { id: 'co5', name: 'CodeChef',        lead: 'Ananya Reddy',   members: 35, eventsThisMonth: 1, status: 'active',  club: 'CodeChef', performance: 71 },
+  { id: 'co6', name: 'GDG',             lead: 'Sara Khan',      members: 22, eventsThisMonth: 2, status: 'pending', club: 'GDG',      performance: 65 },
 ];
 
 export const mockReports: ReportItem[] = [

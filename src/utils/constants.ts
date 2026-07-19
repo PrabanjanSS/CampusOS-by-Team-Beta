@@ -53,15 +53,10 @@ export const ROLES: Record<
   },
 };
 
-export const DEPARTMENTS = [
-  'Computer Science',
-  'Electronics & Communication',
-  'Mechanical Engineering',
-  'Civil Engineering',
-  'Business Administration',
-  'Design & Architecture',
-  'Sciences',
-  'Humanities',
+export const CLUBS = [
+  'IEEE',
+  'GDG',
+  'CodeChef',
 ];
 
 export const YEARS = ['1st Year', '2nd Year', '3rd Year', '4th Year', 'Postgraduate'];

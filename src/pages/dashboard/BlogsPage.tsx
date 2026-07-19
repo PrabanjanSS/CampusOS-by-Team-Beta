@@ -228,7 +228,19 @@ export default function BlogsPage() {
                 </p>
                 {selectedPost.content ? (
                   <p className="whitespace-pre-line leading-relaxed">{selectedPost.content}</p>
-                ) : null}
+                ) : (
+                  <>
+                    <p>
+                      First and foremost, community-driven platforms succeed when they prioritize user experience above all else. In student organisations, the challenges are twofold: high turnover rates as senior students graduate, and varying technical expertise among new recruits. Having a solid design system and documentation in place mitigates these risks, making onboarding seamless.
+                    </p>
+                    <p>
+                      Furthermore, treating our operations like product cycles helps structure the workflows. Instead of ad-hoc events, staging milestones with clear deliverables guarantees consistency. When team members have clear ownership, motivation naturally increases, leading to a much higher retention and contribution rate.
+                    </p>
+                    <p>
+                      Lastly, we encourage cross-club collaboration. Designers, developers, and writers should not operate in silos. Regular syncs, open-source designs, and collaborative workshops foster a culture of shared learning and innovation. By building this foundation, we ensure the club thrives for years to come.
+                    </p>
+                  </>
+                )}
               </div>
             </div>
           </div>

@@ -45,7 +45,7 @@ export const mockEvents: PlannerEvent[] = [
     start: "2026-07-30",
     end: "2026-07-30",
     venue: "Online",
-    organizer: "Department",
+    organizer: "Club",
     participants: 0,
     color: "#DC2626",
   },
