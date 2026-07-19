@@ -244,7 +244,7 @@ const defaultProfile = (name: string): MemberProfile => ({
   name,
   email: name.toLowerCase().replace(' ', '.') + '@campusos.app',
   role: 'member',
-  club: 'codechef',
+  club: 'CodeChef',
   year: '2nd Year',
   bio: 'Active member contributing to campus club projects and volunteering for events.',
   skills: ['React', 'UI/UX', 'Git'],

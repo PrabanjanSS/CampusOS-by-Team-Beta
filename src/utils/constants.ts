@@ -54,9 +54,9 @@ export const ROLES: Record<
 };
 
 export const CLUBS = [
-  'codechef',
-  'ieee',
-  'gdg',
+  'IEEE',
+  'GDG',
+  'CodeChef',
 ];
 
 export const YEARS = ['1st Year', '2nd Year', '3rd Year', '4th Year', 'Postgraduate'];

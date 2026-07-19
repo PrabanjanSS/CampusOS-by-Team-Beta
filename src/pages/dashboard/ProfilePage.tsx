@@ -95,7 +95,7 @@ export default function ProfilePage() {
 
     const currentBio = profilePatch?.bio !== undefined ? profilePatch.bio : (bio || user.bio || '');
     const currentYear = profilePatch?.year !== undefined ? profilePatch.year : (year || user.year || '2nd Year');
-    const currentClub = profilePatch?.club !== undefined ? profilePatch.club : (club || user.club || 'codechef');
+    const currentClub = profilePatch?.club !== undefined ? profilePatch.club : (club || user.club || 'CodeChef');
     const currentSkills = skillsPatch !== undefined ? skillsPatch : (user.skills || []);
 
     profilesMap[user.name] = {
@@ -446,7 +446,7 @@ export default function ProfilePage() {
         <div className="space-y-4">
           <div>
             <label className="label-base">Club</label>
-            <Dropdown value={club} options={CLUBS.map((c) => ({ value: c, label: c.charAt(0).toUpperCase() + c.slice(1) }))} onChange={setClub} />
+            <Dropdown value={club} options={CLUBS.map((c) => ({ value: c, label: c }))} onChange={setClub} />
           </div>
           <div>
             <label className="label-base">Year</label>

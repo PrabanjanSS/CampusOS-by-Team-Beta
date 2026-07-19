@@ -292,7 +292,7 @@ export default function SignupPage() {
                 value={s1.watch("club") ?? ""}
                 options={CLUBS.map((c) => ({
                   value: c,
-                  label: c.charAt(0).toUpperCase() + c.slice(1),
+                  label: c,
                 }))}
                 onChange={(v) =>
                   s1.setValue("club", v, { shouldValidate: true })

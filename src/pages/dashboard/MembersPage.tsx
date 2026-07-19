@@ -371,7 +371,7 @@ export default function MembersPage() {
                 <label className="label-base font-semibold block mb-1.5">Club *</label>
                 <Dropdown
                   value={club}
-                  options={CLUBS.map((c) => ({ value: c, label: c.charAt(0).toUpperCase() + c.slice(1) }))}
+                  options={CLUBS.map((c) => ({ value: c, label: c }))}
                   onChange={setClub}
                 />
               </div>
