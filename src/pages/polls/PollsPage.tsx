@@ -90,9 +90,7 @@ export default function PollsPage() {
     if (optionIndex < 0) return;
 
     try {
-      console.log('Sending request to API...');
       const response = await pollsService.vote(pollId, { optionIndex });
-      console.log('Response:', response);
       const updatedPoll = response.poll ?? poll;
 
       setPolls((prev) =>
@@ -110,7 +108,6 @@ export default function PollsPage() {
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unable to submit vote.';
-      console.error('Vote failed:', err);
       toast({ title: 'Error', description: message, variant: 'error' });
     }
   };
