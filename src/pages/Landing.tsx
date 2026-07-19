@@ -32,6 +32,33 @@ const features = [
   },
 ];
 
+const galleryImages = [
+  {
+    title: "Hackathon 2026",
+    image: "https://images.unsplash.com/photo-1517048676732-d65bc937f952",
+  },
+  {
+    title: "AI Workshop",
+    image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3",
+  },
+  {
+    title: "Robotics Expo",
+    image: "https://images.unsplash.com/photo-1581092921461-eab62e97a780",
+  },
+  {
+    title: "Cultural Fest",
+    image: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30",
+  },
+  {
+    title: "Sports Meet",
+    image: "https://images.unsplash.com/photo-1517649763962-0c623066013b",
+  },
+  {
+    title: "Award Ceremony",
+    image: "https://images.unsplash.com/photo-1511578314322-379afb476865",
+  },
+];
+
 const FadeUpItem = ({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
@@ -258,6 +285,94 @@ export default function Landing() {
             </motion.div>
           ))}
         </div>
+      </section>
+
+      {/* ── Campus Moments ───────────────────────────────────── */}
+      <section className="relative z-10 overflow-hidden bg-cream py-24">
+
+        <div className="mx-auto mb-14 max-w-3xl text-center">
+
+          <h2 className="mt-5 text-5xl font-bold tracking-tight text-ink">
+            Campus Moments ✨
+          </h2>
+
+          <p className="mx-auto mt-5 max-w-2xl text-lg text-ink-soft">
+            Experience the vibrant life of CampusOS through hackathons,
+            AI workshops, cultural festivals, club activities,
+            competitions and student achievements.
+          </p>
+
+        </div>
+
+        <div className="relative mt-16">
+
+          {/* Left Fade */}
+          <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-28 bg-gradient-to-r from-cream to-transparent" />
+
+          {/* Right Fade */}
+          <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-28 bg-gradient-to-l from-cream to-transparent" />
+        </div>
+
+        {/* First Row */}
+        <motion.div
+          animate={{ x: ["0%", "-50%"] }}
+          transition={{
+            repeat: Infinity,
+            ease: "linear",
+            duration: 55,
+          }}
+          className="flex gap-8"
+        >
+          {[...galleryImages, ...galleryImages].map((item, index) => (
+
+            <div
+              key={index}
+              className="
+              group
+              relative
+              h-80
+              w-[460px]
+              shrink-0
+              overflow-hidden
+              rounded-[32px]
+              shadow-xl
+              transition-all
+              duration-500
+              hover:-translate-y-2
+              hover:shadow-2xl
+              "
+            >
+
+              <img
+                src={item.image}
+                alt={item.title}
+                className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
+              />
+
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-100">
+
+                <div className="absolute bottom-6 left-6">
+
+                  <h3 className="text-3xl font-bold text-white drop-shadow-lg">
+
+                    {item.title}
+
+                  </h3>
+
+                  <p className="mt-1 text-base text-white/90">
+                    Experience • Innovation • Collaboration
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          ))}
+
+        </motion.div>
+
       </section>
 
       {/* ── Call to Action ───────────────────────────────────── */}

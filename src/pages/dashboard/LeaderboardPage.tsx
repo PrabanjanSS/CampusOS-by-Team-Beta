@@ -25,18 +25,24 @@ export default function LeaderboardPage() {
         const response = await api.get('/leaderboard');
         if (response.data.success && response.data.leaderboard.length > 0) {
           // Transform backend data to match expected format
-          const transformedData = response.data.leaderboard.map((item: any, index: number) => ({
-            rank: index + 1,
-            name: item.fullName || item.name || 'Unknown',
-            club: item.clubName || item.department || 'General',
-            avatarUrl: item.profilePicture || '',
-            points: item.points || 0,
-          }));
+          const transformedData = response.data.leaderboard
+            .sort((a: any, b: any) => b.points - a.points) // Sort by points descending
+            .map((item: any, index: number) => ({
+              rank: index + 1,
+              name: item.name || 'Unknown',
+              club: item.clubName || item.category || 'General',
+              avatarUrl: item.profilePicture || '',
+              points: item.points || 0,
+            }));
           setLeaderboardData(transformedData);
+        } else {
+          // Use mock data if backend returns empty
+          setLeaderboardData(mockLeaderboard);
         }
       } catch (error) {
         console.error('Failed to fetch leaderboard:', error);
         // Fall back to mock data if backend fails
+        setLeaderboardData(mockLeaderboard);
       } finally {
         setLoading(false);
       }
