@@ -1,18 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Edit3, Award, Target, Zap, Star, CalendarDays, MapPin, Briefcase, CheckCircle2, Trophy, Upload, Link2, Palette } from 'lucide-react';
+import { Edit3, Award, Target, Zap, Star, CalendarDays, MapPin, CheckCircle2, Trophy, Upload, Link2, Palette } from 'lucide-react';
 import { Card, CardHeader } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Avatar } from '../../components/ui/Avatar';
 import { Modal } from '../../components/ui/Modal';
-import { Input } from '../../components/ui/Input';
 import { FadeIn, StaggerGroup, StaggerItem } from '../../components/ui/motion';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { useCountUp } from '../../hooks';
 import { mockTimeline } from '../../utils/mockData';
-import { DEPARTMENTS, YEARS } from '../../utils/constants';
+import { CLUBS, YEARS } from '../../utils/constants';
 import { Dropdown } from '../../components/ui/Dropdown';
 import { formatDate } from '../../utils/cn';
 import { mockProfiles } from '../../components/ui/MemberProfileModal';
@@ -57,7 +56,6 @@ export default function ProfilePage() {
   const [coverOpen, setCoverOpen] = useState(false);
   const [coverTab, setCoverTab] = useState<CoverTab>('themes');
   const [bio, setBio] = useState(user?.bio ?? '');
-  const [department, setDepartment] = useState(user?.department ?? '');
   const [year, setYear] = useState(user?.year ?? '');
   const [club, setClub] = useState(user?.club ?? '');
   const [selectedCover, setSelectedCover] = useState<keyof typeof coverThemes>(user?.coverTheme ?? 'navy');
@@ -96,9 +94,8 @@ export default function ProfilePage() {
     const profilesMap = saved ? JSON.parse(saved) : { ...mockProfiles };
 
     const currentBio = profilePatch?.bio !== undefined ? profilePatch.bio : (bio || user.bio || '');
-    const currentDept = profilePatch?.department !== undefined ? profilePatch.department : (department || user.department || 'Computer Science');
     const currentYear = profilePatch?.year !== undefined ? profilePatch.year : (year || user.year || '2nd Year');
-    const currentClub = profilePatch?.club !== undefined ? profilePatch.club : (club || user.club || 'Developers Club');
+    const currentClub = profilePatch?.club !== undefined ? profilePatch.club : (club || user.club || 'codechef');
     const currentSkills = skillsPatch !== undefined ? skillsPatch : (user.skills || []);
 
     profilesMap[user.name] = {
@@ -107,9 +104,8 @@ export default function ProfilePage() {
       name: user.name,
       email: user.email,
       role: user.role || 'member',
-      department: currentDept,
-      year: currentYear,
       club: currentClub,
+      year: currentYear,
       bio: currentBio,
       avatarUrl: user.avatarUrl || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=256&h=256&fit=crop',
       skills: currentSkills,
@@ -138,8 +134,8 @@ export default function ProfilePage() {
   };
 
   const save = () => {
-    updateUser({ bio, department, year, club });
-    syncProfileToRegistry(user?.certificates || [], { bio, department, year, club });
+    updateUser({ bio, year, club });
+    syncProfileToRegistry(user?.certificates || [], { bio, year, club });
     setEditOpen(false);
     toast({ title: 'Profile updated', variant: 'success' });
   };
@@ -253,7 +249,6 @@ export default function ProfilePage() {
                   <div className="mt-2 flex flex-wrap items-center justify-center sm:justify-start gap-2">
                     <Badge tone="navy" dot>{user?.role}</Badge>
                     <Badge tone="sand">{user?.club}</Badge>
-                    <Badge tone="neutral">{user?.department}</Badge>
                   </div>
                 </div>
               </div>
@@ -269,7 +264,6 @@ export default function ProfilePage() {
 
             {/* Meta */}
             <div className="mt-5 flex flex-wrap justify-center sm:justify-start gap-5 text-sm text-ink-soft">
-              <span className="inline-flex items-center gap-1.5"><Briefcase className="h-4 w-4" /> {user?.department}</span>
               <span className="inline-flex items-center gap-1.5"><CalendarDays className="h-4 w-4" /> {user?.year}</span>
               <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4" /> {user?.club}</span>
             </div>
@@ -450,10 +444,9 @@ export default function ProfilePage() {
       {/* Edit modal */}
       <Modal open={editOpen} onClose={() => setEditOpen(false)} title="Edit Profile" description="Update your profile information" size="md">
         <div className="space-y-4">
-          <Input label="Club" value={club} onChange={(e) => setClub(e.target.value)} placeholder="Developers Club" />
           <div>
-            <label className="label-base">Department</label>
-            <Dropdown value={department} options={DEPARTMENTS.map((d) => ({ value: d, label: d }))} onChange={setDepartment} />
+            <label className="label-base">Club</label>
+            <Dropdown value={club} options={CLUBS.map((c) => ({ value: c, label: c.charAt(0).toUpperCase() + c.slice(1) }))} onChange={setClub} />
           </div>
           <div>
             <label className="label-base">Year</label>

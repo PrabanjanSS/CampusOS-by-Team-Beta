@@ -47,7 +47,7 @@ export const authService = {
 
       role: detectedRole,
 
-      department: "",
+      club: "",
 
       year: "",
     };
@@ -98,8 +98,8 @@ export const authService = {
       role:
         payload.role,
 
-      department:
-        payload.department,
+      club:
+        payload.club,
 
       year:
         payload.year,
@@ -132,7 +132,7 @@ export const authService = {
       role:
         "member",
 
-      department: "",
+      club: "",
 
       year: "",
     };

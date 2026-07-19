@@ -20,7 +20,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 
 import {
-  DEPARTMENTS,
+  CLUBS,
   YEARS,
   APP_NAME,
 } from "../../utils/constants";
@@ -36,9 +36,9 @@ const step1Schema = z.object({
     .string()
     .email("Enter a valid email"),
 
-  department: z
+  club: z
     .string()
-    .min(1, "Select a department"),
+    .min(1, "Select a club"),
 
   year: z
     .string()
@@ -109,7 +109,7 @@ export default function SignupPage() {
     defaultValues: {
       name: "",
       email: "",
-      department: "",
+      club: "",
       year: "",
     },
   });
@@ -148,7 +148,7 @@ export default function SignupPage() {
       await registerUser({
         name: data.name!,
         email: data.email!,
-        department: data.department!,
+        club: data.club!,
         year: data.year!,
         password: values.password,
         role: "member",
@@ -285,23 +285,23 @@ export default function SignupPage() {
 
             <div>
               <label className="mb-1.5 block text-[0.825rem] font-semibold text-ink">
-                Department
+                Club
               </label>
 
               <Dropdown
-                value={s1.watch("department") ?? ""}
-                options={DEPARTMENTS.map((d) => ({
-                  value: d,
-                  label: d,
+                value={s1.watch("club") ?? ""}
+                options={CLUBS.map((c) => ({
+                  value: c,
+                  label: c.charAt(0).toUpperCase() + c.slice(1),
                 }))}
                 onChange={(v) =>
-                  s1.setValue("department", v, { shouldValidate: true })
+                  s1.setValue("club", v, { shouldValidate: true })
                 }
-                placeholder="Select Department"
+                placeholder="Select Club"
               />
-              {s1.formState.errors.department && (
+              {s1.formState.errors.club && (
                 <p className="mt-1 text-xs text-red-500">
-                  {s1.formState.errors.department.message}
+                  {s1.formState.errors.club.message}
                 </p>
               )}
             </div>

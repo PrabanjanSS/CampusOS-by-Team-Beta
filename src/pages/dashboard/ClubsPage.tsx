@@ -10,15 +10,15 @@ import { mockClubOverviews } from '../../utils/mockData';
 export default function ClubsPage() {
   const { toast } = useToast();
   const [query, setQuery] = useState('');
-  const [filterDept, setFilterDept] = useState('All');
+  const [filterClub, setFilterClub] = useState('All');
 
   const filtered = mockClubOverviews.filter((club) => {
     const matchesQuery = club.name.toLowerCase().includes(query.toLowerCase()) || club.lead.toLowerCase().includes(query.toLowerCase());
-    const matchesDept = filterDept === 'All' || club.department === filterDept;
-    return matchesQuery && matchesDept;
+    const matchesClub = filterClub === 'All' || club.club === filterClub;
+    return matchesQuery && matchesClub;
   });
 
-  const depts = ['All', ...Array.from(new Set(mockClubOverviews.map((c) => c.department)))];
+  const clubs = ['All', ...Array.from(new Set(mockClubOverviews.map((c) => c.club)))];
 
   const handleViewDetails = (name: string) => {
     toast({
@@ -43,17 +43,17 @@ export default function ClubsPage() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center justify-between">
           <SearchBar value={query} onChange={setQuery} placeholder="Search clubs or leads…" className="sm:max-w-xs" />
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-            {depts.map((dept) => (
+            {clubs.map((club) => (
               <button
-                key={dept}
-                onClick={() => setFilterDept(dept)}
+                key={club}
+                onClick={() => setFilterClub(club)}
                 className={`rounded-lg px-3 py-1.5 text-xs font-semibold capitalize transition-all ${
-                  filterDept === dept
+                  filterClub === club
                     ? 'bg-navy text-white shadow-sm'
                     : 'bg-white text-ink-soft border border-border-soft hover:bg-cream-100/50'
                 }`}
               >
-                {dept}
+                {club}
               </button>
             ))}
           </div>
@@ -78,7 +78,7 @@ export default function ClubsPage() {
                   </div>
                   <h3 className="mt-4 text-base font-semibold text-ink">{club.name}</h3>
                   <p className="mt-1 text-xs text-ink-soft">Lead: <span className="font-semibold text-ink">{club.lead}</span></p>
-                  <p className="text-[0.68rem] text-ink-soft mt-0.5">Department: {club.department}</p>
+                  <p className="text-[0.68rem] text-ink-soft mt-0.5">Club: {club.club}</p>
                 </div>
 
                 <div className="mt-5 space-y-4">
@@ -110,7 +110,7 @@ export default function ClubsPage() {
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border-soft p-12 text-center bg-white/50 col-span-3">
             <AlertCircle className="h-8 w-8 text-ink-soft/40" />
             <p className="mt-2 text-sm font-semibold text-ink">No clubs found</p>
-            <p className="text-xs text-ink-soft">Try selecting a different department filter or modifying search terms.</p>
+            <p className="text-xs text-ink-soft">Try selecting a different club filter or modifying search terms.</p>
           </div>
         )}
       </StaggerGroup>

@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema(
         },
 
 
-        department: {
+        club: {
 
             type: String,
             required: true

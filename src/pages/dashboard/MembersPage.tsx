@@ -11,7 +11,7 @@ import { useAuth } from '../../context/AuthContext';
 import { mockClubMembers } from '../../utils/mockData';
 import { MemberProfileModal } from '../../components/ui/MemberProfileModal';
 import { Modal } from '../../components/ui/Modal';
-import { DEPARTMENTS, YEARS } from '../../utils/constants';
+import { CLUBS, YEARS } from '../../utils/constants';
 import { Dropdown } from '../../components/ui/Dropdown';
 import api from '../../services/api';
 
@@ -50,9 +50,8 @@ export default function MembersPage() {
             email: item.email || '',
             role: item.role || 'Member',
             joinedDate: item.joinedDate || 'Jul 2026',
-            department: item.department || 'General',
+            club: item.club || 'General',
             year: item.year || '1st Year',
-            club: item.clubName || item.club || 'General',
             points: item.points || 0,
             status: item.status || 'active',
             avatarUrl: item.profilePicture || '',
@@ -77,7 +76,7 @@ export default function MembersPage() {
   }, [user]);
 
   const [query, setQuery] = useState('');
-  const [filterDept, setFilterDept] = useState('All');
+  const [filterClub, setFilterClub] = useState('All');
   const [selectedMemberName, setSelectedMemberName] = useState<string | null>(null);
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
 
@@ -85,9 +84,8 @@ export default function MembersPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('Developer');
-  const [department, setDepartment] = useState(DEPARTMENTS[0]);
-  const [year, setYear] = useState(YEARS[1]); // e.g. 2nd Year
-  const [club, setClub] = useState('Developers Club');
+  const [club, setClub] = useState(CLUBS[0]);
+  const [year, setYear] = useState(YEARS[1]);
   const [points, setPoints] = useState('0');
 
   const handleStatusToggle = async (id: string, name: string, currentStatus: string) => {
@@ -140,9 +138,8 @@ export default function MembersPage() {
       name: name.trim(),
       email: email.trim(),
       role: role.trim(),
-      department,
-      year,
       club: club.trim(),
+      year,
       points: Number(points) || 0,
       status: 'active',
     };
@@ -167,9 +164,8 @@ export default function MembersPage() {
         name: memberWithId.name,
         email: memberWithId.email,
         role: 'member',
-        department: memberWithId.department,
-        year: memberWithId.year,
         club: memberWithId.club,
+        year: memberWithId.year,
         bio: `Active member of the ${memberWithId.club} contributing to campus activities and projects.`,
         avatarUrl: undefined,
         skills: ['React', 'UI/UX', 'Git'],
@@ -205,9 +201,8 @@ export default function MembersPage() {
     setName('');
     setEmail('');
     setRole('Developer');
-    setDepartment(DEPARTMENTS[0]);
+    setClub(CLUBS[0]);
     setYear(YEARS[1]);
-    setClub('Developers Club');
     setPoints('0');
     setIsAddMemberOpen(false);
 
@@ -220,11 +215,11 @@ export default function MembersPage() {
 
   const filtered = members.filter((m: any) => {
     const matchesQuery = m.name.toLowerCase().includes(query.toLowerCase()) || m.role.toLowerCase().includes(query.toLowerCase());
-    const matchesDept = filterDept === 'All' || m.department === filterDept;
-    return matchesQuery && matchesDept;
+    const matchesClub = filterClub === 'All' || m.club === filterClub;
+    return matchesQuery && matchesClub;
   });
 
-  const depts = ['All', ...Array.from(new Set(members.map((m: any) => m.department)))];
+  const clubs = ['All', ...Array.from(new Set(members.map((m: any) => m.club)))];
 
   return (
     <div className="space-y-8">
@@ -242,17 +237,17 @@ export default function MembersPage() {
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between py-2">
           <SearchBar value={query} onChange={setQuery} placeholder="Search members by name or role…" className="w-full md:max-w-sm" />
           <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
-            {depts.map((dept: any) => (
+            {clubs.map((club: any) => (
               <button
-                key={dept}
-                onClick={() => setFilterDept(dept)}
+                key={club}
+                onClick={() => setFilterClub(club)}
                 className={`rounded-xl px-4 py-2 text-xs font-semibold capitalize transition-all duration-200 ${
-                  filterDept === dept
+                  filterClub === club
                     ? 'bg-navy text-white shadow-lift'
                     : 'bg-white text-ink-soft border border-border-soft hover:bg-cream-100/50'
                 }`}
               >
-                {dept}
+                {club}
               </button>
             ))}
           </div>
@@ -285,7 +280,7 @@ export default function MembersPage() {
                     <p className="text-sm font-medium text-navy/80 mt-0.5">{m.role}</p>
                     <div className="mt-3 space-y-1 text-xs text-ink-soft/80">
                       <p>Joined · <span className="font-semibold text-ink-soft">{m.joinedDate}</span></p>
-                      <p>Department · <span className="font-semibold text-ink-soft">{m.department}</span></p>
+                      <p>Club · <span className="font-semibold text-ink-soft">{m.club}</span></p>
                     </div>
                   </div>
                 </div>
@@ -373,32 +368,22 @@ export default function MembersPage() {
               </div>
 
               <div>
-                <label className="label-base font-semibold block mb-1.5">Department *</label>
+                <label className="label-base font-semibold block mb-1.5">Club *</label>
                 <Dropdown
-                  value={department}
-                  options={DEPARTMENTS.map((d) => ({ value: d, label: d }))}
-                  onChange={setDepartment}
+                  value={club}
+                  options={CLUBS.map((c) => ({ value: c, label: c.charAt(0).toUpperCase() + c.slice(1) }))}
+                  onChange={setClub}
                 />
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="label-base font-semibold block mb-1.5">Year *</label>
                 <Dropdown
                   value={year}
                   options={YEARS.map((y) => ({ value: y, label: y }))}
                   onChange={setYear}
-                />
-              </div>
-
-              <div>
-                <label className="label-base">Club Name *</label>
-                <input
-                  required
-                  value={club}
-                  onChange={(e) => setClub(e.target.value)}
-                  className="input-base w-full mt-1.5"
                 />
               </div>
 

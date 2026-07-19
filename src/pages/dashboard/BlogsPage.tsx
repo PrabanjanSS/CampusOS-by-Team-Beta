@@ -155,7 +155,7 @@ export default function BlogsPage() {
                       Furthermore, treating our operations like product cycles helps structure the workflows. Instead of ad-hoc events, staging milestones with clear deliverables guarantees consistency. When team members have clear ownership, motivation naturally increases, leading to a much higher retention and contribution rate.
                     </p>
                     <p>
-                      Lastly, we encourage cross-departmental collaboration. Designers, developers, and writers should not operate in silos. Regular syncs, open-source designs, and collaborative workshops foster a culture of shared learning and innovation. By building this foundation, we ensure the club thrives for years to come.
+                      Lastly, we encourage cross-club collaboration. Designers, developers, and writers should not operate in silos. Regular syncs, open-source designs, and collaborative workshops foster a culture of shared learning and innovation. By building this foundation, we ensure the club thrives for years to come.
                     </p>
                   </>
                 )}

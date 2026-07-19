@@ -69,7 +69,7 @@ const firstName = user?.name?.split(' ')[0] ?? 'there';
               <span className="text-navy">Faculty Coordinator</span>
             </h1>
             <p className="mt-1.5 text-sm text-ink-soft">
-              {user?.designation ?? 'Faculty Coordinator'} · {user?.department}
+              {user?.designation ?? 'Faculty Coordinator'} · {user?.club}
               {user?.overseesClubs && (
                 <> · Overseeing <span className="font-medium text-ink">{user.overseesClubs.length} clubs</span></>
               )}
@@ -245,28 +245,27 @@ const firstName = user?.name?.split(' ')[0] ?? 'there';
         {/* Right col */}
         <div className="space-y-6">
 
-          {/* Department overview */}
+          {/* Club overview */}
           <FadeIn delay={0.1}>
             <Card>
-              <CardHeader title="Department Overview" subtitle="Clubs by department" />
+              <CardHeader title="Club Overview" subtitle="Clubs by category" />
               <div className="space-y-3">
                 {[
-                  { dept: 'Computer Science', clubs: 3, members: 136, color: 'bg-navy' },
-                  { dept: 'Design',           clubs: 2, members: 54,  color: 'bg-sand' },
-                  { dept: 'Electronics',      clubs: 2, members: 80,  color: 'bg-success' },
-                  { dept: 'Arts & Humanities',clubs: 3, members: 92,  color: 'bg-warning' },
-                ].map((d, i) => (
+                  { club: 'CodeChef', members: 48, color: 'bg-navy' },
+                  { club: 'IEEE',    members: 40, color: 'bg-success' },
+                  { club: 'GDG',     members: 52, color: 'bg-sand' },
+                ].map((c, i) => (
                   <motion.div
-                    key={d.dept}
+                    key={c.club}
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.14 + i * 0.06 }}
                     className="flex items-center gap-3"
                   >
-                    <div className={`h-9 w-1 rounded-full ${d.color}`} />
+                    <div className={`h-9 w-1 rounded-full ${c.color}`} />
                     <div className="flex-1">
-                      <p className="text-sm font-semibold text-ink">{d.dept}</p>
-                      <p className="text-xs text-ink-soft">{d.clubs} clubs · {d.members} members</p>
+                      <p className="text-sm font-semibold text-ink">{c.club}</p>
+                      <p className="text-xs text-ink-soft">{c.members} members</p>
                     </div>
                   </motion.div>
                 ))}

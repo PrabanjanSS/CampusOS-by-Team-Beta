@@ -67,7 +67,7 @@ export default function LeadDashboard() {
             </h1>
             <p className="mt-1.5 text-sm text-ink-soft">
               {user?.club && <><span className="font-medium text-ink">{user.club}</span> · </>}
-              {user?.teamSize ?? 24} members · {user?.department}
+              {user?.teamSize ?? 24} members
             </p>
           </div>
           <div className="flex gap-2.5">

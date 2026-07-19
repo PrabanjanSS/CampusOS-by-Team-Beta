@@ -163,7 +163,7 @@ export default function SettingsPage() {
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                   <Input label="Full name" value={name} onChange={(e) => setName(e.target.value)} />
                   <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-                  <Input label="Department" defaultValue={user?.department} disabled />
+                  <Input label="Club" defaultValue={user?.club} disabled />
                   {user?.role === 'faculty' ? (
                     <Input label="Designation" defaultValue={user?.designation ?? 'Faculty Coordinator'} disabled />
                   ) : (

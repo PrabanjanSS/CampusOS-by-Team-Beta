@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Trophy, Award, Briefcase, CalendarDays, MapPin, Zap } from 'lucide-react';
+import { Trophy, Award, CalendarDays, MapPin, Zap } from 'lucide-react';
 import { Modal } from './Modal';
 import { Avatar } from './Avatar';
 import { Badge } from './Badge';
@@ -10,9 +10,8 @@ export interface MemberProfile {
   name: string;
   email: string;
   role: string;
-  department: string;
-  year: string;
   club: string;
+  year: string;
   bio: string;
   avatarUrl?: string;
   skills: string[];
@@ -27,9 +26,8 @@ export const mockProfiles: Record<string, MemberProfile> = {
     name: 'Aarav Mehta',
     email: 'aarav.mehta@campusos.app',
     role: 'lead',
-    department: 'Computer Science',
+    club: 'gdg',
     year: '3rd Year',
-    club: 'Developers Club',
     bio: 'Full-stack tinkerer and design enthusiast. Leading the Developers Club to ship student-built products that outlast a semester.',
     avatarUrl: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=256&h=256&fit=crop',
     skills: ['React', 'TypeScript', 'UI/UX', 'Node.js', 'Figma', 'Public Speaking'],
@@ -53,9 +51,8 @@ export const mockProfiles: Record<string, MemberProfile> = {
     name: 'Priya Sharma',
     email: 'priya.sharma@campusos.app',
     role: 'member',
-    department: 'Computer Science',
+    club: 'gdg',
     year: '2nd Year',
-    club: 'Developers Club',
     bio: 'Frontend developer and open-source contributor. Passionate about building tools that make learning accessible for everyone.',
     avatarUrl: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=256&h=256&fit=crop',
     skills: ['React', 'TypeScript', 'Figma', 'Python', 'Git'],
@@ -77,9 +74,8 @@ export const mockProfiles: Record<string, MemberProfile> = {
     name: 'Diya Sharma',
     email: 'diya.sharma@campusos.app',
     role: 'member',
-    department: 'Design & Architecture',
+    club: 'gdg',
     year: '3rd Year',
-    club: 'Design Club',
     bio: 'Visual designer focusing on design systems, human-computer interaction, and digital illustrations.',
     avatarUrl: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=128&h=128&fit=crop',
     skills: ['Figma', 'Adobe XD', 'Illustrator', 'CSS', 'Typography'],
@@ -99,9 +95,8 @@ export const mockProfiles: Record<string, MemberProfile> = {
     name: 'Sara Khan',
     email: 'sara.khan@campusos.app',
     role: 'member',
-    department: 'Humanities',
+    club: 'gdg',
     year: '2nd Year',
-    club: 'Design Club',
     bio: 'Content strategist, creative writer and documentation lead. I bridge the gap between complex engineering and clear wording.',
     avatarUrl: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=128&h=128&fit=crop',
     skills: ['Technical Writing', 'SEO', 'Creative Direction', 'Copywriting'],
@@ -121,9 +116,8 @@ export const mockProfiles: Record<string, MemberProfile> = {
     name: 'Rohan Gupta',
     email: 'rohan.gupta@campusos.app',
     role: 'member',
-    department: 'Computer Science',
+    club: 'ieee',
     year: '3rd Year',
-    club: 'Robotics Club',
     bio: 'Embedded systems tinkerer, C++ fanatic, and hardware architect. Currently building the software backbone for autonomous micro-rovers.',
     avatarUrl: 'https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&w=128&h=128&fit=crop',
     skills: ['C++', 'Arduino', 'ROS', 'Python', 'PCB Design'],
@@ -143,9 +137,8 @@ export const mockProfiles: Record<string, MemberProfile> = {
     name: 'Kabir Nair',
     email: 'kabir.nair@campusos.app',
     role: 'member',
-    department: 'Computer Science',
+    club: 'ieee',
     year: '3rd Year',
-    club: 'Robotics Club',
     bio: 'Linux enthusiast, server administrator, and automation geek. Keeping the campus club build servers running with 99.9% uptime.',
     avatarUrl: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=128&h=128&fit=crop',
     skills: ['Docker', 'Linux', 'GitHub Actions', 'AWS', 'Python'],
@@ -165,9 +158,8 @@ export const mockProfiles: Record<string, MemberProfile> = {
     name: 'Diya Patel',
     email: 'diya.patel@campusos.app',
     role: 'member',
-    department: 'Design & Architecture',
+    club: 'gdg',
     year: '2nd Year',
-    club: 'Design Club',
     bio: 'Aspiring product designer. Focuse on visual assets, color theory, and prototyping micro-animations in Figma.',
     avatarUrl: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=128&h=128&fit=crop',
     skills: ['Figma', 'Prototyping', 'User Research', 'Sketch'],
@@ -187,9 +179,8 @@ export const mockProfiles: Record<string, MemberProfile> = {
     name: 'Ananya Reddy',
     email: 'ananya.reddy@campusos.app',
     role: 'member',
-    department: 'Computer Science',
+    club: 'gdg',
     year: '3rd Year',
-    club: 'Developers Club',
     bio: 'Product manager and event enthusiast. Love organizing hackathons, panel discussions, and aligning developers to goals.',
     avatarUrl: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=128&h=128&fit=crop',
     skills: ['Product Management', 'Agile', 'Jira', 'Public Relations'],
@@ -209,9 +200,8 @@ export const mockProfiles: Record<string, MemberProfile> = {
     name: 'Vikram Pai',
     email: 'vikram.pai@campusos.app',
     role: 'member',
-    department: 'Humanities',
+    club: 'codechef',
     year: '4th Year',
-    club: 'Debate Society',
     bio: 'President of the Debate Society. Fostering structured public speaking, logic validation, and rhetorical debate.',
     avatarUrl: 'https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=128&h=128&fit=crop',
     skills: ['Public Speaking', 'Critical Thinking', 'Leadership', 'Political Science'],
@@ -231,9 +221,8 @@ export const mockProfiles: Record<string, MemberProfile> = {
     name: 'Meera Joshi',
     email: 'meera.joshi@campusos.app',
     role: 'member',
-    department: 'Computer Science',
+    club: 'codechef',
     year: '2nd Year',
-    club: 'Developers Club',
     bio: 'Software engineer focusing on Python scripting, web automation, and competitive programming.',
     avatarUrl: 'https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=128&h=128&fit=crop',
     skills: ['Python', 'Django', 'SQL', 'Algorithms'],
@@ -255,9 +244,8 @@ const defaultProfile = (name: string): MemberProfile => ({
   name,
   email: name.toLowerCase().replace(' ', '.') + '@campusos.app',
   role: 'member',
-  department: 'Computer Science',
+  club: 'codechef',
   year: '2nd Year',
-  club: 'Developers Club',
   bio: 'Active member contributing to campus club projects and volunteering for events.',
   skills: ['React', 'UI/UX', 'Git'],
   achievements: [],
@@ -319,7 +307,6 @@ export function MemberProfileModal({ memberName, onClose }: Props) {
             <div className="mt-2 flex flex-wrap items-center justify-center sm:justify-start gap-2">
               <Badge tone="navy" dot>{profile.role}</Badge>
               <Badge tone="sand">{profile.club}</Badge>
-              <Badge tone="neutral">{profile.department}</Badge>
             </div>
           </div>
 
@@ -330,7 +317,6 @@ export function MemberProfileModal({ memberName, onClose }: Props) {
 
           {/* Metadata */}
           <div className="mt-4 flex flex-wrap justify-center sm:justify-start gap-4 text-xs text-ink-soft border-t border-border-soft/60 pt-4">
-            <span className="inline-flex items-center gap-1.5"><Briefcase className="h-3.5 w-3.5" /> {profile.department}</span>
             <span className="inline-flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5" /> {profile.year}</span>
             <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> {profile.club}</span>
           </div>
