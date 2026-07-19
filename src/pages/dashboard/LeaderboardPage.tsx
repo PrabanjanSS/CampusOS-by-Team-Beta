@@ -21,6 +21,17 @@ export default function LeaderboardPage() {
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
+      // Check if user is in demo mode
+      const isDemoMode = user?.id === 'demo';
+
+      if (isDemoMode) {
+        // Use mock data for demo mode
+        setLeaderboardData(mockLeaderboard);
+        setLoading(false);
+        return;
+      }
+
+      // For logged-in users, always use backend data
       try {
         const response = await api.get('/leaderboard');
         if (response.data.success && response.data.leaderboard.length > 0) {
@@ -36,20 +47,20 @@ export default function LeaderboardPage() {
             }));
           setLeaderboardData(transformedData);
         } else {
-          // Use mock data if backend returns empty
-          setLeaderboardData(mockLeaderboard);
+          // Backend returned empty - show empty state for real users
+          setLeaderboardData([]);
         }
       } catch (error) {
         console.error('Failed to fetch leaderboard:', error);
-        // Fall back to mock data if backend fails
-        setLeaderboardData(mockLeaderboard);
+        // For real users, show empty state on error
+        setLeaderboardData([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchLeaderboard();
-  }, []);
+  }, [user]);
 
   const displayData = leaderboardData.map((p) => {
     if (p.rank === 7 && user) {
@@ -79,6 +90,13 @@ export default function LeaderboardPage() {
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="text-ink-soft">Loading leaderboard...</div>
+        </div>
+      ) : leaderboardData.length === 0 ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <p className="text-ink-soft">No leaderboard data available yet.</p>
+            <p className="mt-1 text-sm text-ink-soft/60">Start participating in events to earn points!</p>
+          </div>
         </div>
       ) : (
         <>
