@@ -35,7 +35,7 @@ export default function ProjectCard({ project }: Props) {
             Featured
           </span>
         )}
-
+        
         <span className="absolute right-3 top-3 rounded-full bg-green-600 px-3 py-1 text-xs font-semibold text-white">
           {project.status}
         </span>

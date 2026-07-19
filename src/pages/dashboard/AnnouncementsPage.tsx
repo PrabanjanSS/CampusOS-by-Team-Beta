@@ -1,14 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Megaphone, AlertCircle } from 'lucide-react';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Avatar } from '../../components/ui/Avatar';
 import { FadeIn, StaggerGroup, StaggerItem } from '../../components/ui/motion';
-import { mockAnnouncements } from '../../utils/mockData';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { Modal } from '../../components/ui/Modal';
+import {
+  announcementsService,
+  type Announcement,
+  type AnnouncementPayload,
+} from '../../services/announcements';
 
 const priorityTone = {
   high: 'danger',
@@ -28,15 +32,65 @@ const priorityOptions = [
   { value: 'low', label: 'Low', color: 'bg-ink-soft/8 text-ink-soft border-border-soft hover:bg-ink-soft/12', active: 'bg-ink-soft/80 text-white border-ink-soft shadow-md' },
 ] as const;
 
+type AnnouncementView = {
+  id: string;
+  title: string;
+  body: string;
+  author: string;
+  date: string;
+  priority: 'high' | 'normal' | 'low';
+};
+
+const mapAnnouncement = (announcement: Announcement): AnnouncementView => ({
+  id: announcement.id || announcement.title,
+  title: announcement.title,
+  body: announcement.description,
+  author: announcement.clubName || 'Administrator',
+  date: announcement.createdAt ? new Date(announcement.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Just now',
+  priority: announcement.priority,
+});
+
 export default function AnnouncementsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [announcements, setAnnouncements] = useState(() => {
-    const saved = localStorage.getItem('campusos_announcements');
-    return saved ? JSON.parse(saved) : mockAnnouncements;
-  });
+  const canCreate = user?.role === 'lead' || user?.role === 'faculty';
+  const [announcements, setAnnouncements] = useState<AnnouncementView[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [priority, setPriority] = useState<'high' | 'normal' | 'low'>('normal');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadAnnouncements = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await announcementsService.getAll();
+        if (!isMounted) return;
+        setAnnouncements((response.announcements ?? []).map(mapAnnouncement));
+      } catch (err) {
+        if (!isMounted) return;
+
+        const message = err instanceof Error ? err.message : 'Unable to load announcements.';
+        setError(message);
+        toast({ title: 'Error', description: message, variant: 'error' });
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void loadAnnouncements();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [toast]);
 
   function PriorityPicker() {
     return (
@@ -53,43 +107,57 @@ export default function AnnouncementsPage() {
             {opt.label}
           </button>
         ))}
-        {/* Hidden input to submit value with form */}
         <input type="hidden" name="priority" value={priority} />
       </div>
     );
   }
 
-  const handleCreateAnnouncement = (e: React.FormEvent) => {
+  const handleCreateAnnouncement = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
-    const title = formData.get('title') as string;
-    const body = formData.get('body') as string;
-    const priority = formData.get('priority') as 'high' | 'normal' | 'low';
 
-    if (!title || !body || !priority) return;
+    if (isSubmitting) return;
 
-    const newAnn = {
-      id: 'ann_' + Date.now(),
+    const formData = new FormData(e.currentTarget);
+    const title = String(formData.get('title') || '').trim();
+    const body = String(formData.get('body') || '').trim();
+    const uiPriority = String(formData.get('priority') || 'normal') as 'high' | 'normal' | 'low';
+
+    if (!title || !body || !uiPriority) return;
+
+    const payload: AnnouncementPayload = {
       title,
-      body,
-      priority,
-      author: user?.name || 'Administrator',
-      date: 'Just now',
+      description: body,
+      priority: uiPriority === 'high' ? 'High' : uiPriority === 'normal' ? 'Medium' : 'Low',
+      clubName: user?.club || 'CampusOS',
     };
 
-    const updated = [newAnn, ...announcements];
-    setAnnouncements(updated);
-    localStorage.setItem('campusos_announcements', JSON.stringify(updated));
-    setIsCreateOpen(false);
+    setIsSubmitting(true);
 
-    toast({
-      title: 'Announcement Posted',
-      description: 'Your announcement has been broadcasted successfully.',
-      variant: 'success',
-    });
+    try {
+      const response = await announcementsService.create(payload);
+      const createdAnnouncement = response.announcement ? mapAnnouncement(response.announcement) : mapAnnouncement({
+        id: 'ann_' + Date.now(),
+        title,
+        description: body,
+        priority: uiPriority,
+        clubName: payload.clubName,
+      });
+
+      setAnnouncements((prev) => [createdAnnouncement, ...prev]);
+      setIsCreateOpen(false);
+
+      toast({
+        title: 'Announcement Posted',
+        description: 'Your announcement has been broadcasted successfully.',
+        variant: 'success',
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unable to create announcement.';
+      toast({ title: 'Error', description: message, variant: 'error' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-
-  const canCreate = user?.role === 'lead' || user?.role === 'faculty';
 
   return (
     <div className="space-y-6">
@@ -107,34 +175,60 @@ export default function AnnouncementsPage() {
         </div>
       </FadeIn>
 
-      <StaggerGroup className="space-y-4">
-        {announcements.map((a: any) => (
-          <StaggerItem key={a.id}>
-            <motion.div whileHover={{ y: -3 }} className="card-surface p-5 transition-shadow hover:shadow-lift">
-              <div className="flex items-start gap-4">
-                <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${
-                  a.priority === 'high' ? 'bg-danger/10 text-danger' : a.priority === 'normal' ? 'bg-warning/15 text-[#b07314]' : 'bg-navy/10 text-navy'
-                }`}>
-                  <Megaphone className="h-5 w-5" />
-                </span>
-                <div className="flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className={`h-1.5 w-1.5 rounded-full ${priorityDot[a.priority as keyof typeof priorityDot]}`} />
-                    <h3 className="text-base font-semibold text-ink">{a.title}</h3>
-                    <Badge tone={priorityTone[a.priority as keyof typeof priorityTone]}>{a.priority}</Badge>
-                  </div>
-                  <p className="mt-2 text-sm leading-relaxed text-ink-soft">{a.body}</p>
-                  <div className="mt-4 flex items-center gap-2.5 border-t border-border-soft pt-3">
-                    <Avatar name={a.author} size="xs" />
-                    <span className="text-xs font-medium text-ink">{a.author}</span>
-                    <span className="text-xs text-ink-soft">· {a.date}</span>
+      {isLoading ? (
+        <div className="card-surface flex items-center gap-3 p-6 text-sm text-ink-soft">
+          <span className="h-5 w-5 animate-spin rounded-full border-2 border-navy/20 border-t-navy" />
+          Loading announcements...
+        </div>
+      ) : error ? (
+        <div className="card-surface flex items-start gap-3 border border-danger/20 bg-danger/5 p-5 text-sm text-ink-soft">
+          <AlertCircle className="mt-0.5 h-4 w-4 text-danger" />
+          <div>
+            <p className="font-semibold text-ink">Unable to load announcements</p>
+            <p className="mt-1">{error}</p>
+          </div>
+        </div>
+      ) : announcements.length === 0 ? (
+        <div className="card-surface p-10 text-center text-sm text-ink-soft">
+          <p>No announcements found.</p>
+          {canCreate && (
+            <div className="mt-4 flex justify-center">
+              <Button type="button" leftIcon="Plus" onClick={() => setIsCreateOpen(true)}>
+                New Announcement
+              </Button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <StaggerGroup className="space-y-4">
+          {announcements.map((a) => (
+            <StaggerItem key={a.id}>
+              <motion.div whileHover={{ y: -3 }} className="card-surface p-5 transition-shadow hover:shadow-lift">
+                <div className="flex items-start gap-4">
+                  <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${
+                    a.priority === 'high' ? 'bg-danger/10 text-danger' : a.priority === 'normal' ? 'bg-warning/15 text-[#b07314]' : 'bg-navy/10 text-navy'
+                  }`}>
+                    <Megaphone className="h-5 w-5" />
+                  </span>
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={`h-1.5 w-1.5 rounded-full ${priorityDot[a.priority as keyof typeof priorityDot]}`} />
+                      <h3 className="text-base font-semibold text-ink">{a.title}</h3>
+                      <Badge tone={priorityTone[a.priority as keyof typeof priorityTone]}>{a.priority}</Badge>
+                    </div>
+                    <p className="mt-2 text-sm leading-relaxed text-ink-soft">{a.body}</p>
+                    <div className="mt-4 flex items-center gap-2.5 border-t border-border-soft pt-3">
+                      <Avatar name={a.author} size="xs" />
+                      <span className="text-xs font-medium text-ink">{a.author}</span>
+                      <span className="text-xs text-ink-soft">· {a.date}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </motion.div>
-          </StaggerItem>
-        ))}
-      </StaggerGroup>
+              </motion.div>
+            </StaggerItem>
+          ))}
+        </StaggerGroup>
+      )}
 
       <FadeIn delay={0.1}>
         <div className="flex items-center gap-3 rounded-2xl border border-border-soft bg-cream-100/50 p-4 text-sm text-ink-soft">
@@ -176,10 +270,10 @@ export default function AnnouncementsPage() {
               <PriorityPicker />
             </div>
             <div className="flex justify-end gap-3 pt-2">
-              <Button variant="secondary" type="button" onClick={() => setIsCreateOpen(false)}>
+              <Button variant="secondary" type="button" onClick={() => setIsCreateOpen(false)} disabled={isSubmitting}>
                 Cancel
               </Button>
-              <Button type="submit" leftIcon="Megaphone">
+              <Button type="submit" leftIcon="Megaphone" loading={isSubmitting}>
                 Post Announcement
               </Button>
             </div>

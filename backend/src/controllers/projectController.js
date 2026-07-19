@@ -61,19 +61,16 @@ const project = await Project.create({
 const getAllProjects = async(req,res)=>{
 
     try{
+        console.log('--- DEBUG: Connected to Database:', mongoose.connection.name);
+        
+        // Log the database host to ensure it's not a local vs. remote mismatch
+        console.log('--- DEBUG: Connected to Host:', mongoose.connection.host);
 
-        const projects = await Project.find({
-
-    status:"Approved"
-
-});
-
+        const projects = await Project.find({});
 
         return res.status(200).json({
-
             success:true,
             projects
-
         });
 
     }

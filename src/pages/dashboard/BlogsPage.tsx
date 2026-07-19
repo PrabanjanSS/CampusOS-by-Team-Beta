@@ -1,33 +1,67 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, PenLine, ArrowLeft, Image as ImageIcon, Check, Upload } from 'lucide-react';
+import { Clock, PenLine, ArrowLeft, Image as ImageIcon, Check, Upload, AlertCircle } from 'lucide-react';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { FadeIn, StaggerGroup, StaggerItem } from '../../components/ui/motion';
-import { mockBlogPosts } from '../../utils/mockData';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import { Modal } from '../../components/ui/Modal';
+import { blogsService, type Blog, type BlogPayload } from '../../services/blogs';
 
 const presetCovers = [
   'https://images.pexels.com/photos/196645/pexels-photo-196645.jpeg?auto=compress&cs=tinysrgb&w=800',
   'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=800',
   'https://images.pexels.com/photos/7988079/pexels-photo-7988079.jpeg?auto=compress&cs=tinysrgb&w=800',
   'https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg?auto=compress&cs=tinysrgb&w=800',
-  'https://images.pexels.com/photos/3861972/pexels-photo-3861972.jpeg?auto=compress&cs=tinysrgb&w=800'
+  'https://images.pexels.com/photos/3861972/pexels-photo-3861972.jpeg?auto=compress&cs=tinysrgb&w=800',
 ];
+
+type BlogView = {
+  id: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  cover: string;
+  author: string;
+  date: string;
+  readTime: string;
+};
+
+const formatDate = (date?: string) => {
+  if (!date) return 'Just now';
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) return 'Just now';
+  return parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
+
+const calculateReadTime = (content: string) => {
+  const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
+  const minutes = Math.max(1, Math.round(wordCount / 200));
+  return `${minutes} min`;
+};
+
+const mapBlog = (blog: Blog, fallbackCover = presetCovers[0], author = 'CampusOS'): BlogView => ({
+  id: blog.id || blog.title,
+  title: blog.title,
+  excerpt: blog.description,
+  content: blog.content,
+  cover: blog.image || fallbackCover,
+  author,
+  date: formatDate(blog.createdAt),
+  readTime: calculateReadTime(blog.content),
+});
 
 export default function BlogsPage() {
   const { toast } = useToast();
   const { user } = useAuth();
-
-  const [posts, setPosts] = useState(() => {
-    const saved = localStorage.getItem('campusos_blogs');
-    return saved ? JSON.parse(saved) : mockBlogPosts;
-  });
-
-  const [selectedPost, setSelectedPost] = useState<any>(null);
+  const canCreate = user?.role === 'lead' || user?.role === 'faculty';
+  const [posts, setPosts] = useState<BlogView[]>([]);
+  const [selectedPost, setSelectedPost] = useState<BlogView | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form states
   const [title, setTitle] = useState('');
@@ -38,12 +72,47 @@ export default function BlogsPage() {
   const [deviceCoverUrl, setDeviceCoverUrl] = useState('');
   const [coverType, setCoverType] = useState<'presets' | 'custom' | 'device'>('presets');
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadBlogs = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await blogsService.getAll();
+        if (!isMounted) return;
+
+        const nextPosts = (response.blogs ?? []).map((blog) => mapBlog(blog, presetCovers[0], blog.clubName));
+        setPosts(nextPosts);
+      } catch (err) {
+        if (!isMounted) return;
+
+        const message = err instanceof Error ? err.message : 'Unable to load blogs.';
+        setError(message);
+        toast({ title: 'Error', description: message, variant: 'error' });
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void loadBlogs();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [toast]);
+
   const handleWritePost = () => {
     setIsCreateOpen(true);
   };
 
-  const handleSubmitBlog = (e: React.FormEvent) => {
+  const handleSubmitBlog = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isSubmitting) return;
 
     if (!title.trim() || !excerpt.trim() || !content.trim()) {
       toast({
@@ -70,41 +139,54 @@ export default function BlogsPage() {
       return;
     }
 
-    // Pro-dev feature: auto-calculate read time
-    const wordCount = content.trim().split(/\s+/).length;
-    const minutes = Math.max(1, Math.round(wordCount / 200));
-    const readTime = `${minutes} min`;
-
-    const newPost = {
-      id: 'bl_' + Date.now(),
+    const payload: BlogPayload = {
       title: title.trim(),
-      excerpt: excerpt.trim(),
+      description: excerpt.trim(),
       content: content.trim(),
-      cover: finalCover.trim(),
-      author: user?.name || 'Guest Contributor',
-      date: 'Just now',
-      readTime,
+      image: finalCover.trim(),
+      tags: [],
+      clubName: user?.club || 'CampusOS',
     };
 
-    const updated = [newPost, ...posts];
-    setPosts(updated);
-    localStorage.setItem('campusos_blogs', JSON.stringify(updated));
+    setIsSubmitting(true);
 
-    // Reset Form
-    setTitle('');
-    setExcerpt('');
-    setContent('');
-    setCoverUrl(presetCovers[0]);
-    setCustomCoverUrl('');
-    setDeviceCoverUrl('');
-    setCoverType('presets');
-    setIsCreateOpen(false);
+    try {
+      const response = await blogsService.create(payload);
+      const createdPost = response.blog
+        ? mapBlog(response.blog, finalCover.trim(), payload.clubName)
+        : {
+            id: 'bl_' + Date.now(),
+            title: payload.title,
+            excerpt: payload.description,
+            content: payload.content,
+            cover: payload.image || presetCovers[0],
+            author: payload.clubName,
+            date: 'Just now',
+            readTime: calculateReadTime(payload.content),
+          };
 
-    toast({
-      title: 'Article Published!',
-      description: 'Your blog post has been shared successfully.',
-      variant: 'success',
-    });
+      setPosts((prev) => [createdPost, ...prev]);
+
+      setTitle('');
+      setExcerpt('');
+      setContent('');
+      setCoverUrl(presetCovers[0]);
+      setCustomCoverUrl('');
+      setDeviceCoverUrl('');
+      setCoverType('presets');
+      setIsCreateOpen(false);
+
+      toast({
+        title: 'Article Published!',
+        description: 'Your blog post has been shared successfully.',
+        variant: 'success',
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unable to create blog post.';
+      toast({ title: 'Error', description: message, variant: 'error' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (selectedPost) {
@@ -146,19 +228,7 @@ export default function BlogsPage() {
                 </p>
                 {selectedPost.content ? (
                   <p className="whitespace-pre-line leading-relaxed">{selectedPost.content}</p>
-                ) : (
-                  <>
-                    <p>
-                      First and foremost, community-driven platforms succeed when they prioritize user experience above all else. In student organisations, the challenges are twofold: high turnover rates as senior students graduate, and varying technical expertise among new recruits. Having a solid design system and documentation in place mitigates these risks, making onboarding seamless.
-                    </p>
-                    <p>
-                      Furthermore, treating our operations like product cycles helps structure the workflows. Instead of ad-hoc events, staging milestones with clear deliverables guarantees consistency. When team members have clear ownership, motivation naturally increases, leading to a much higher retention and contribution rate.
-                    </p>
-                    <p>
-                      Lastly, we encourage cross-departmental collaboration. Designers, developers, and writers should not operate in silos. Regular syncs, open-source designs, and collaborative workshops foster a culture of shared learning and innovation. By building this foundation, we ensure the club thrives for years to come.
-                    </p>
-                  </>
-                )}
+                ) : null}
               </div>
             </div>
           </div>
@@ -175,87 +245,116 @@ export default function BlogsPage() {
             <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">Blogs</h1>
             <p className="mt-1 text-sm text-ink-soft">Stories, guides, and insights from the community.</p>
           </div>
-          <Button leftIcon="Plus" onClick={handleWritePost} magnetic>Write Post</Button>
+          {canCreate && (
+            <Button leftIcon="Plus" onClick={handleWritePost} magnetic>
+              Write Post
+            </Button>
+          )}
         </div>
       </FadeIn>
 
-      {/* Featured */}
-      {posts.length > 0 && (
-        <FadeIn delay={0.08}>
-          <motion.div
-            whileHover={{ y: -4 }}
-            onClick={() => setSelectedPost(posts[0])}
-            className="card-surface overflow-hidden transition-shadow hover:shadow-lift cursor-pointer bg-white/70"
-          >
-            <div className="grid md:grid-cols-2">
-              <div className="relative h-56 overflow-hidden bg-navy md:h-auto">
-                <img src={posts[0].cover} alt="" className="h-full w-full object-cover" />
-                <div className="absolute left-4 top-4">
-                  <Badge tone="navy" dot>Featured</Badge>
-                </div>
-              </div>
-              <div className="p-6 sm:p-8 text-left">
-                <p className="text-xs font-semibold uppercase tracking-wider text-[#8a6d3b]">Editor's pick</p>
-                <h2 className="mt-2 text-2xl font-bold leading-tight text-ink">{posts[0].title}</h2>
-                <p className="mt-3 text-sm leading-relaxed text-ink-soft">{posts[0].excerpt}</p>
-                <div className="mt-5 flex items-center gap-3 text-xs text-ink-soft">
-                  <span className="font-semibold text-ink">{posts[0].author}</span>
-                  <span>·</span>
-                  <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {posts[0].readTime}</span>
-                  <span>·</span>
-                  <span>{posts[0].date}</span>
-                </div>
-                <Button
-                  variant="secondary"
-                  className="mt-5"
-                  rightIcon="ArrowRight"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedPost(posts[0]);
-                  }}
-                >
-                  Read article
-                </Button>
-              </div>
+      {isLoading ? (
+        <div className="card-surface flex items-center gap-3 p-6 text-sm text-ink-soft">
+          <span className="h-5 w-5 animate-spin rounded-full border-2 border-navy/20 border-t-navy" />
+          Loading blogs...
+        </div>
+      ) : error ? (
+        <div className="card-surface flex items-start gap-3 border border-danger/20 bg-danger/5 p-5 text-sm text-ink-soft">
+          <AlertCircle className="mt-0.5 h-4 w-4 text-danger" />
+          <div>
+            <p className="font-semibold text-ink">Unable to load blogs</p>
+            <p className="mt-1">{error}</p>
+          </div>
+        </div>
+      ) : posts.length === 0 ? (
+        <div className="card-surface p-10 text-center text-sm text-ink-soft">
+          <p>No blog posts found.</p>
+          {canCreate && (
+            <div className="mt-4 flex justify-center">
+              <Button leftIcon="Plus" onClick={handleWritePost}>
+                Write Post
+              </Button>
             </div>
-          </motion.div>
-        </FadeIn>
+          )}
+        </div>
+      ) : (
+        <>
+          {posts.length > 0 && (
+            <FadeIn delay={0.08}>
+              <motion.div
+                whileHover={{ y: -4 }}
+                onClick={() => setSelectedPost(posts[0])}
+                className="card-surface overflow-hidden transition-shadow hover:shadow-lift cursor-pointer bg-white/70"
+              >
+                <div className="grid md:grid-cols-2">
+                  <div className="relative h-56 overflow-hidden bg-navy md:h-auto">
+                    <img src={posts[0].cover} alt="" className="h-full w-full object-cover" />
+                    <div className="absolute left-4 top-4">
+                      <Badge tone="navy" dot>Featured</Badge>
+                    </div>
+                  </div>
+                  <div className="p-6 sm:p-8 text-left">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-[#8a6d3b]">Editor's pick</p>
+                    <h2 className="mt-2 text-2xl font-bold leading-tight text-ink">{posts[0].title}</h2>
+                    <p className="mt-3 text-sm leading-relaxed text-ink-soft">{posts[0].excerpt}</p>
+                    <div className="mt-5 flex items-center gap-3 text-xs text-ink-soft">
+                      <span className="font-semibold text-ink">{posts[0].author}</span>
+                      <span>·</span>
+                      <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {posts[0].readTime}</span>
+                      <span>·</span>
+                      <span>{posts[0].date}</span>
+                    </div>
+                    <Button
+                      variant="secondary"
+                      className="mt-5"
+                      rightIcon="ArrowRight"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedPost(posts[0]);
+                      }}
+                    >
+                      Read article
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            </FadeIn>
+          )}
+
+          <StaggerGroup className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {posts.slice(1).map((post) => (
+              <StaggerItem key={post.id}>
+                <motion.article
+                  whileHover={{ y: -6 }}
+                  onClick={() => setSelectedPost(post)}
+                  className="card-surface overflow-hidden transition-shadow hover:shadow-lift cursor-pointer flex flex-col h-full bg-white/70"
+                >
+                  <div className="relative h-44 overflow-hidden">
+                    <img src={post.cover} alt="" className="h-full w-full object-cover transition-transform duration-500 hover:scale-105" />
+                    <div className="absolute left-3 top-3">
+                      <Badge tone="sand">{post.readTime}</Badge>
+                    </div>
+                  </div>
+                  <div className="p-5 flex-1 flex flex-col justify-between text-left">
+                    <div>
+                      <h3 className="text-base font-semibold leading-snug text-ink">{post.title}</h3>
+                      <p className="mt-2 line-clamp-2 text-sm text-ink-soft">{post.excerpt}</p>
+                    </div>
+                    <div className="mt-4 flex items-center justify-between border-t border-border-soft pt-3">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-ink">
+                        <PenLine className="h-3.5 w-3.5 text-navy" /> {post.author}
+                      </span>
+                      <span className="text-xs text-ink-soft">{post.date}</span>
+                    </div>
+                  </div>
+                </motion.article>
+              </StaggerItem>
+            ))}
+          </StaggerGroup>
+        </>
       )}
 
-      {/* Grid */}
-      <StaggerGroup className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {posts.slice(1).map((post: any) => (
-          <StaggerItem key={post.id}>
-            <motion.article
-              whileHover={{ y: -6 }}
-              onClick={() => setSelectedPost(post)}
-              className="card-surface overflow-hidden transition-shadow hover:shadow-lift cursor-pointer flex flex-col h-full bg-white/70"
-            >
-              <div className="relative h-44 overflow-hidden">
-                <img src={post.cover} alt="" className="h-full w-full object-cover transition-transform duration-500 hover:scale-105" />
-                <div className="absolute left-3 top-3">
-                  <Badge tone="sand">{post.readTime}</Badge>
-                </div>
-              </div>
-              <div className="p-5 flex-1 flex flex-col justify-between text-left">
-                <div>
-                  <h3 className="text-base font-semibold leading-snug text-ink">{post.title}</h3>
-                  <p className="mt-2 line-clamp-2 text-sm text-ink-soft">{post.excerpt}</p>
-                </div>
-                <div className="mt-4 flex items-center justify-between border-t border-border-soft pt-3">
-                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-ink">
-                    <PenLine className="h-3.5 w-3.5 text-navy" /> {post.author}
-                  </span>
-                  <span className="text-xs text-ink-soft">{post.date}</span>
-                </div>
-              </div>
-            </motion.article>
-          </StaggerItem>
-        ))}
-      </StaggerGroup>
-
-      {/* Write Post Modal */}
       {isCreateOpen && (
         <Modal
           open={isCreateOpen}
@@ -288,7 +387,6 @@ export default function BlogsPage() {
               />
             </div>
 
-            {/* Cover photo selectors */}
             <div className="border-t border-border-soft/60 pt-3">
               <label className="label-base block mb-2">Cover Image Source</label>
               <div className="flex gap-1.5 rounded-xl bg-cream-100/60 p-1 mb-3">
@@ -396,8 +494,12 @@ export default function BlogsPage() {
             </div>
 
             <div className="mt-6 flex justify-end gap-3 pt-2">
-              <Button variant="secondary" type="button" onClick={() => setIsCreateOpen(false)}>Cancel</Button>
-              <Button type="submit" leftIcon="Check">Publish Article</Button>
+              <Button variant="secondary" type="button" onClick={() => setIsCreateOpen(false)} disabled={isSubmitting}>
+                Cancel
+              </Button>
+              <Button type="submit" leftIcon="Check" loading={isSubmitting}>
+                Publish Article
+              </Button>
             </div>
           </form>
         </Modal>
