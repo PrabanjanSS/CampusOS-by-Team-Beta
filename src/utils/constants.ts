@@ -1,7 +1,7 @@
 import type { Role, NavItem } from '../types';
 
 export const APP_NAME = 'CampusOS';
-export const APP_TAGLINE = 'One Platform. Every Club.';
+export const APP_TAGLINE = 'Campus Management Made Simple';
 export const APP_DESCRIPTION = 'University Club Management Platform';
 export const APP_VERSION = '1.0.0';
 

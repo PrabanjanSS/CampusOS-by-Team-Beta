@@ -1,13 +1,14 @@
 import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 import { Trophy, Medal, Award, TrendingUp } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Avatar } from '../../components/ui/Avatar';
 import { FadeIn, StaggerGroup, StaggerItem } from '../../components/ui/motion';
 import { mockLeaderboard } from '../../utils/mockData';
+import api from '../../services/api';
 
 import { useAuth } from '../../context/AuthContext';
 import { MemberProfileModal } from '../../components/ui/MemberProfileModal';
-import { useState } from 'react';
 
 const podiumIcons = [Trophy, Medal, Award];
 const podiumColors = ['#F59E0B', '#9CA3AF', '#CD7F32'];
@@ -15,8 +16,36 @@ const podiumColors = ['#F59E0B', '#9CA3AF', '#CD7F32'];
 export default function LeaderboardPage() {
   const { user } = useAuth();
   const [selectedMemberName, setSelectedMemberName] = useState<string | null>(null);
-  
-  const leaderboardData = mockLeaderboard.map((p) => {
+  const [leaderboardData, setLeaderboardData] = useState(mockLeaderboard);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        const response = await api.get('/leaderboard');
+        if (response.data.success && response.data.leaderboard.length > 0) {
+          // Transform backend data to match expected format
+          const transformedData = response.data.leaderboard.map((item: any, index: number) => ({
+            rank: index + 1,
+            name: item.fullName || item.name || 'Unknown',
+            club: item.clubName || item.department || 'General',
+            avatarUrl: item.profilePicture || '',
+            points: item.points || 0,
+          }));
+          setLeaderboardData(transformedData);
+        }
+      } catch (error) {
+        console.error('Failed to fetch leaderboard:', error);
+        // Fall back to mock data if backend fails
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLeaderboard();
+  }, []);
+
+  const displayData = leaderboardData.map((p) => {
     if (p.rank === 7 && user) {
       return {
         ...p,
@@ -29,8 +58,8 @@ export default function LeaderboardPage() {
     return p;
   });
 
-  const top3 = leaderboardData.slice(0, 3);
-  const rest = leaderboardData.slice(3);
+  const top3 = displayData.slice(0, 3);
+  const rest = displayData.slice(3);
 
   return (
     <div className="space-y-6">
@@ -41,6 +70,12 @@ export default function LeaderboardPage() {
         </div>
       </FadeIn>
 
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-ink-soft">Loading leaderboard...</div>
+        </div>
+      ) : (
+        <>
       {/* Podium */}
 <FadeIn delay={0.08}>
   <div className="grid gap-6 sm:grid-cols-3 items-end">
@@ -137,6 +172,8 @@ export default function LeaderboardPage() {
           </div>
         </Card>
       </StaggerGroup>
+        </>
+      )}
 
       <MemberProfileModal
         memberName={selectedMemberName}
