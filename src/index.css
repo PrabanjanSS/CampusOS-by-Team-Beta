@@ -1,0 +1,129 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border-soft;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-cream font-sans text-ink;
+    font-feature-settings: 'cv11', 'ss01';
+    line-height: 1.5;
+  }
+
+  ::selection {
+    @apply bg-navy/15 text-navy;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-beige;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-sand;
+    background-clip: content-box;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply border border-white/60 bg-white/70 backdrop-blur-xl;
+  }
+
+  .glass-navy {
+    @apply border border-white/10 bg-navy/80 backdrop-blur-xl;
+  }
+
+  .glass-cream {
+    @apply border border-white/50 bg-cream/70 backdrop-blur-xl;
+  }
+
+  .gradient-border {
+    position: relative;
+    background-clip: padding-box;
+  }
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(25, 55, 109, 0.35), rgba(220, 197, 165, 0.4), transparent);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .card-surface {
+    @apply rounded-2xl border border-border-soft bg-white shadow-card;
+  }
+
+  .input-base {
+    @apply w-full rounded-xl border border-border-soft bg-white/90 px-4 py-3 text-[0.925rem] text-ink placeholder:text-ink-soft/50 transition-all duration-200 focus:border-navy/50 focus:bg-white focus:outline-none focus:ring-4 focus:ring-navy/10;
+    box-shadow: inset 0 1px 3px rgba(25, 55, 109, 0.04);
+  }
+  .input-base:focus {
+    box-shadow: inset 0 1px 2px rgba(25, 55, 109, 0.02), 0 0 0 4px rgba(25, 55, 109, 0.08);
+  }
+
+  .label-base {
+    @apply mb-1.5 block text-[0.78rem] font-bold uppercase tracking-wider text-ink-soft/70;
+  }
+
+
+  .shimmer-bg {
+    @apply relative overflow-hidden bg-beige/50;
+  }
+  .shimmer-bg::after {
+    content: '';
+    @apply absolute inset-0 -translate-x-full animate-shimmer;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  }
+
+  .nav-link {
+    @apply relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-ink-soft transition-colors duration-200 hover:bg-cream-200 hover:text-navy;
+  }
+  .nav-link-active {
+    @apply text-navy;
+    background-color: rgba(25, 55, 109, 0.08);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+}
