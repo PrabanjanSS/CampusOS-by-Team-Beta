@@ -17,7 +17,7 @@ export const authService = {
     );
 
     const firebaseUser =
-      credential.user;
+      userCredential.user;
 
     const token =
       await firebaseUser.getIdToken();
@@ -58,7 +58,7 @@ export const authService = {
     );
 
     await updateProfile(
-      credential.user,
+      userCredential.user,
       {
         displayName:
           payload.name,
@@ -71,11 +71,11 @@ export const authService = {
     localStorage.setItem('campusos_role_map', JSON.stringify(roleMap));
 
     const token =
-      await credential.user.getIdToken();
+      await userCredential.user.getIdToken();
 
     const user: User = {
       id:
-        credential.user.uid,
+        userCredential.user.uid,
 
       name:
         payload.name,
@@ -93,7 +93,10 @@ export const authService = {
         payload.year,
     };
 
-    return data;
+    return{
+      token,
+      user
+    };
   },
 
   async googleLogin(
