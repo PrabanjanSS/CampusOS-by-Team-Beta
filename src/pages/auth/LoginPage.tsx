@@ -114,11 +114,11 @@ export default function LoginPage({ role }: { role: Role }) {
     setLoading(true);
 
     try {
-      await login({
+      const session = await login({
         email: values.email,
         password: values.password,
         remember,
-        role: role,
+        role: role, // This will be auto-detected if role mapping exists
       });
 
       toast({
@@ -127,7 +127,8 @@ export default function LoginPage({ role }: { role: Role }) {
         variant: "success",
       });
 
-      navigate("/app");
+      // Auto-redirect based on detected role
+      navigate(`/app/${session.user.role}`);
 
     } catch (error: any) {
       let message = "Invalid email or password.";

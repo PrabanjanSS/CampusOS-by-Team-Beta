@@ -31,6 +31,10 @@ export const authService = {
     const token =
       await firebaseUser.getIdToken();
 
+    // Auto-detect role from stored mapping or use provided role as fallback
+    const roleMap = JSON.parse(localStorage.getItem('campusos_role_map') || '{}');
+    const detectedRole = roleMap[payload.email.toLowerCase()] || payload.role;
+
     const user: User = {
       id: firebaseUser.uid,
 
@@ -41,8 +45,7 @@ export const authService = {
       email:
         firebaseUser.email ?? "",
 
-      role:
-        payload.role,
+      role: detectedRole,
 
       department: "",
 
@@ -73,6 +76,11 @@ export const authService = {
           payload.name,
       }
     );
+
+    // Store role mapping for auto-detection during login
+    const roleMap = JSON.parse(localStorage.getItem('campusos_role_map') || '{}');
+    roleMap[payload.email.toLowerCase()] = payload.role;
+    localStorage.setItem('campusos_role_map', JSON.stringify(roleMap));
 
     const token =
       await credential.user.getIdToken();
