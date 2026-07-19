@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Award, UserX, UserCheck, AlertCircle } from 'lucide-react';
 import { Badge } from '../../components/ui/Badge';
@@ -7,19 +7,74 @@ import { SearchBar } from '../../components/ui/SearchBar';
 import { Avatar } from '../../components/ui/Avatar';
 import { FadeIn, StaggerGroup, StaggerItem } from '../../components/ui/motion';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 import { mockClubMembers } from '../../utils/mockData';
 import { MemberProfileModal } from '../../components/ui/MemberProfileModal';
 import { Modal } from '../../components/ui/Modal';
 import { DEPARTMENTS, YEARS } from '../../utils/constants';
 import { Dropdown } from '../../components/ui/Dropdown';
+import api from '../../services/api';
 
 export default function MembersPage() {
   const { toast } = useToast();
+  const { user } = useAuth();
 
-  const [members, setMembers] = useState(() => {
-    const saved = localStorage.getItem('campusos_club_members');
-    return saved ? JSON.parse(saved) : mockClubMembers;
-  });
+  const [members, setMembers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMembers = async () => {
+      // Check if user is in demo mode
+      const isDemoMode = user?.id === 'demo';
+      console.log('Members fetch - User ID:', user?.id, 'Is Demo Mode:', isDemoMode);
+
+      if (isDemoMode) {
+        // Use mock data for demo mode
+        console.log('Using mock data for demo mode');
+        const saved = localStorage.getItem('campusos_club_members');
+        setMembers(saved ? JSON.parse(saved) : mockClubMembers);
+        setLoading(false);
+        return;
+      }
+
+      // For logged-in users, fetch from backend
+      console.log('Fetching from backend for real user');
+      try {
+        const response = await api.get('/members');
+        console.log('Backend members response:', response.data);
+        if (response.data.success && response.data.members.length > 0) {
+          // Transform backend data to match expected format
+          const transformedData = response.data.members.map((item: any) => ({
+            id: item._id || item.id,
+            name: item.fullName || item.name || 'Unknown',
+            email: item.email || '',
+            role: item.role || 'Member',
+            joinedDate: item.joinedDate || 'Jul 2026',
+            department: item.department || 'General',
+            year: item.year || '1st Year',
+            club: item.clubName || item.club || 'General',
+            points: item.points || 0,
+            status: item.status || 'active',
+            avatarUrl: item.profilePicture || '',
+          }));
+          console.log('Transformed members data:', transformedData);
+          setMembers(transformedData);
+        } else {
+          // Backend returned empty
+          console.log('Backend returned empty members data');
+          setMembers([]);
+        }
+      } catch (error) {
+        console.error('Failed to fetch members:', error);
+        // For real users, show empty state on error
+        setMembers([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMembers();
+  }, [user]);
 
   const [query, setQuery] = useState('');
   const [filterDept, setFilterDept] = useState('All');
@@ -35,11 +90,31 @@ export default function MembersPage() {
   const [club, setClub] = useState('Developers Club');
   const [points, setPoints] = useState('0');
 
-  const handleStatusToggle = (id: string, name: string, currentStatus: string) => {
+  const handleStatusToggle = async (id: string, name: string, currentStatus: string) => {
+    const isDemoMode = user?.id === 'demo';
     const nextStatus = currentStatus === 'active' ? 'inactive' : 'active';
-    const updated = members.map((m: any) => (m.id === id ? { ...m, status: nextStatus } : m));
-    setMembers(updated);
-    localStorage.setItem('campusos_club_members', JSON.stringify(updated));
+
+    if (isDemoMode) {
+      // Demo mode: update localStorage
+      const updated = members.map((m: any) => (m.id === id ? { ...m, status: nextStatus } : m));
+      setMembers(updated);
+      localStorage.setItem('campusos_club_members', JSON.stringify(updated));
+    } else {
+      // Real user: update backend
+      try {
+        await api.put(`/members/${id}`, { status: nextStatus });
+        const updated = members.map((m: any) => (m.id === id ? { ...m, status: nextStatus } : m));
+        setMembers(updated);
+      } catch (error) {
+        console.error('Failed to update member status:', error);
+        toast({
+          title: 'Update Failed',
+          description: 'Could not update member status. Please try again.',
+          variant: 'error',
+        });
+        return;
+      }
+    }
 
     toast({
       title: 'Status Updated',
@@ -48,7 +123,7 @@ export default function MembersPage() {
     });
   };
 
-  const handleAddMemberSubmit = (e: React.FormEvent) => {
+  const handleAddMemberSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!name.trim() || !email.trim()) {
@@ -60,43 +135,71 @@ export default function MembersPage() {
       return;
     }
 
+    const isDemoMode = user?.id === 'demo';
     const newMember = {
-      id: 'm_' + Date.now(),
       name: name.trim(),
       email: email.trim(),
       role: role.trim(),
-      joinedDate: 'Jul 2026',
       department,
       year,
       club: club.trim(),
       points: Number(points) || 0,
       status: 'active',
-      avatarUrl: undefined
     };
 
-    const updated = [newMember, ...members];
-    setMembers(updated);
-    localStorage.setItem('campusos_club_members', JSON.stringify(updated));
+    if (isDemoMode) {
+      // Demo mode: add to localStorage
+      const memberWithId = {
+        ...newMember,
+        id: 'm_' + Date.now(),
+        joinedDate: 'Jul 2026',
+        avatarUrl: undefined,
+      };
+      const updated = [memberWithId, ...members];
+      setMembers(updated);
+      localStorage.setItem('campusos_club_members', JSON.stringify(updated));
 
-    // Pro-dev integration: Sync new member default profile into local registry
-    const savedProfiles = localStorage.getItem('campusos_member_profiles');
-    const profilesMap = savedProfiles ? JSON.parse(savedProfiles) : {};
-    profilesMap[newMember.name] = {
-      id: newMember.id,
-      name: newMember.name,
-      email: newMember.email,
-      role: 'member',
-      department: newMember.department,
-      year: newMember.year,
-      club: newMember.club,
-      bio: `Active member of the ${newMember.club} contributing to campus activities and projects.`,
-      avatarUrl: undefined,
-      skills: ['React', 'UI/UX', 'Git'],
-      achievements: [],
-      badges: [{ id: 'b1', label: 'Active Member', color: '#19376D' }],
-      certificates: []
-    };
-    localStorage.setItem('campusos_member_profiles', JSON.stringify(profilesMap));
+      // Pro-dev integration: Sync new member default profile into local registry
+      const savedProfiles = localStorage.getItem('campusos_member_profiles');
+      const profilesMap = savedProfiles ? JSON.parse(savedProfiles) : {};
+      profilesMap[memberWithId.name] = {
+        id: memberWithId.id,
+        name: memberWithId.name,
+        email: memberWithId.email,
+        role: 'member',
+        department: memberWithId.department,
+        year: memberWithId.year,
+        club: memberWithId.club,
+        bio: `Active member of the ${memberWithId.club} contributing to campus activities and projects.`,
+        avatarUrl: undefined,
+        skills: ['React', 'UI/UX', 'Git'],
+        achievements: [],
+        badges: [{ id: 'b1', label: 'Active Member', color: '#19376D' }],
+        certificates: []
+      };
+      localStorage.setItem('campusos_member_profiles', JSON.stringify(profilesMap));
+    } else {
+      // Real user: add to backend
+      try {
+        const response = await api.post('/members', newMember);
+        const memberWithId = {
+          ...newMember,
+          id: response.data.member._id || response.data.member.id,
+          joinedDate: response.data.member.joinedDate || 'Jul 2026',
+          avatarUrl: response.data.member.profilePicture || '',
+        };
+        const updated = [memberWithId, ...members];
+        setMembers(updated);
+      } catch (error) {
+        console.error('Failed to add member:', error);
+        toast({
+          title: 'Add Failed',
+          description: 'Could not add member. Please try again.',
+          variant: 'error',
+        });
+        return;
+      }
+    }
 
     // Reset Form
     setName('');
@@ -156,8 +259,13 @@ export default function MembersPage() {
         </div>
       </FadeIn>
 
-      <StaggerGroup className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filtered.length > 0 ? (
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-ink-soft">Loading members...</div>
+        </div>
+      ) : (
+        <StaggerGroup className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {filtered.length > 0 ? (
           filtered.map((m: any) => (
             <StaggerItem key={m.id}>
               <motion.div
@@ -210,6 +318,7 @@ export default function MembersPage() {
           </div>
         )}
       </StaggerGroup>
+      )}
 
       <MemberProfileModal
         memberName={selectedMemberName}
