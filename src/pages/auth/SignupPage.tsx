@@ -36,10 +36,6 @@ const step1Schema = z.object({
     .string()
     .email("Enter a valid email"),
 
-  role: z
-    .string()
-    .min(1, "Select your role"),
-
   department: z
     .string()
     .min(1, "Select a department"),
@@ -113,7 +109,6 @@ export default function SignupPage() {
     defaultValues: {
       name: "",
       email: "",
-      role: "",
       department: "",
       year: "",
     },
@@ -156,7 +151,7 @@ export default function SignupPage() {
         department: data.department!,
         year: data.year!,
         password: values.password,
-        role: data.role! as "member" | "lead" | "faculty",
+        role: "member",
       });
 
       setStep(3);
@@ -168,7 +163,7 @@ export default function SignupPage() {
       });
 
       setTimeout(() => {
-        navigate(`/login/${data.role}`);
+        navigate(`/login/member`);
       }, 1600);
 
     } catch (error: any) {
@@ -287,30 +282,6 @@ export default function SignupPage() {
               error={s1.formState.errors.email?.message}
               {...s1.register("email")}
             />
-
-            <div>
-              <label className="mb-1.5 block text-[0.825rem] font-semibold text-ink">
-                Role
-              </label>
-
-              <Dropdown
-                value={s1.watch("role") ?? ""}
-                options={[
-                  { value: "member", label: "Member" },
-                  { value: "lead", label: "Club Lead" },
-                  { value: "faculty", label: "Faculty Coordinator" },
-                ]}
-                onChange={(v) =>
-                  s1.setValue("role", v, { shouldValidate: true })
-                }
-                placeholder="Select Role"
-              />
-              {s1.formState.errors.role && (
-                <p className="mt-1 text-xs text-red-500">
-                  {s1.formState.errors.role.message}
-                </p>
-              )}
-            </div>
 
             <div>
               <label className="mb-1.5 block text-[0.825rem] font-semibold text-ink">
