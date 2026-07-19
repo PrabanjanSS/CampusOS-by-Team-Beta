@@ -51,9 +51,7 @@ router.get(
 
     authorizeRoles(
 
-        "Faculty",
-
-        "Admin"
+        "Faculty"
 
     ),
 
@@ -72,9 +70,7 @@ router.get(
 
     authorizeRoles(
 
-        "Faculty",
-
-        "Admin"
+        "Faculty"
 
     ),
 
@@ -95,8 +91,6 @@ router.get(
 
         "Faculty",
 
-        "Admin",
-
         "Club Lead"
 
     ),
@@ -116,9 +110,7 @@ router.put(
 
     authorizeRoles(
 
-        "Faculty",
-
-        "Admin"
+        "Faculty"
 
     ),
 
@@ -137,9 +129,7 @@ router.put(
 
     authorizeRoles(
 
-        "Faculty",
-
-        "Admin"
+        "Faculty"
 
     ),
 

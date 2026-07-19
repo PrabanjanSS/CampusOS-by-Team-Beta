@@ -35,7 +35,7 @@ authorizeRoles(
 
     "Faculty",
 
-    "Admin"
+
 
 ),
 
@@ -72,7 +72,7 @@ router.put(
 
         "Club Lead",
 
-        "Admin",
+
 
         "Faculty"
 
@@ -93,7 +93,7 @@ router.delete(
 
         "Club Lead",
 
-        "Admin",
+
 
         "Faculty"
 
@@ -111,9 +111,7 @@ router.put(
 
     authorizeRoles(
 
-        "Faculty",
-
-        "Admin"
+        "Faculty"
 
     ),
 
@@ -131,9 +129,7 @@ router.put(
 
     authorizeRoles(
 
-        "Faculty",
-
-        "Admin"
+        "Faculty"
 
     ),
 

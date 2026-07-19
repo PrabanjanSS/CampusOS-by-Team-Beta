@@ -32,9 +32,7 @@ router.post(
 
     authorizeRoles(
 
-        "Club Lead",
-
-        "Admin"
+        "Club Lead"
 
     ),
 
@@ -69,9 +67,7 @@ router.put(
 
     authorizeRoles(
 
-        "Club Lead",
-
-        "Admin"
+        "Club Lead"
 
     ),
 
@@ -89,7 +85,7 @@ router.delete(
 
     authorizeRoles(
 
-        "Admin"
+        "Faculty"
 
     ),
 

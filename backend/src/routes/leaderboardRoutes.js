@@ -27,7 +27,7 @@ router.post(
 
     authorizeRoles(
 
-        "Admin"
+        "Faculty"
 
     ),
 
@@ -53,7 +53,7 @@ router.put(
 
     authorizeRoles(
 
-        "Admin"
+        "Faculty"
 
     ),
 

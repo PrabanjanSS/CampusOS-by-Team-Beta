@@ -45,7 +45,7 @@ router.put(
 
     authorizeRoles(
 
-        "Admin"
+        "Faculty"
 
     ),
 
@@ -62,7 +62,7 @@ router.delete(
 
     authorizeRoles(
 
-        "Admin"
+        "Faculty"
 
     ),
 

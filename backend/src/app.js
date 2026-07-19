@@ -16,8 +16,6 @@ const leaderboardRoutes =
 require("./routes/leaderboardRoutes");
 const memberRoutes =
 require("./routes/memberRoutes");
-const adminRoutes =
-require("./routes/adminRoutes");
 const reportRoutes =
 require("./routes/reportRoutes");
 const pollRoutes =
@@ -92,13 +90,6 @@ app.use(
 
 );
 
-app.use(
-
-    "/api/admin",
-
-    adminRoutes
-
-);
 
 
 app.use(

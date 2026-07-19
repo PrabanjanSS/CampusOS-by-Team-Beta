@@ -16,9 +16,6 @@ const createBlog = async(req,res)=>{
 
             req.user.role === "Faculty"
 
-            ||
-
-            req.user.role === "Admin"
 
         ){
 
