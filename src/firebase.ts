@@ -17,6 +17,15 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
+// Validate Firebase configuration
+const requiredKeys = ['apiKey', 'authDomain', 'projectId', 'appId'] as const;
+const missingKeys = requiredKeys.filter(key => !firebaseConfig[key as keyof typeof firebaseConfig]);
+
+if (missingKeys.length > 0) {
+  console.error('Firebase configuration is incomplete. Missing keys:', missingKeys);
+  console.error('Please set up your Firebase configuration in .env file');
+}
+
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
@@ -25,5 +34,8 @@ export const auth = getAuth(app);
 setPersistence(auth, browserLocalPersistence);
 
 export const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({
+  prompt: 'select_account'
+});
 export const db = getFirestore(app);
 

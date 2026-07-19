@@ -272,7 +272,7 @@ export default function Landing() {
 
         <div className="mx-auto mb-14 max-w-3xl text-center">
           <h2 className="mt-5 text-5xl font-bold tracking-tight text-ink">
-            Campus Moments ✨
+            Campus Moments 
           </h2>
 
           <p className="mx-auto mt-5 max-w-2xl text-lg text-ink-soft">
