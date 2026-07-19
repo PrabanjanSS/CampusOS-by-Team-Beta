@@ -47,12 +47,28 @@ export default function GoogleButton() {
       });
 
       window.location.href = "/app";
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      console.error("Google Sign-In Error:", error);
+
+      let errorMessage = "Please try again.";
+
+      if (error.code === 'auth/popup-blocked') {
+        errorMessage = "Popup was blocked. Please allow popups for this site.";
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = "Popup was closed before completing sign-in.";
+      } else if (error.code === 'auth/unauthorized-domain') {
+        errorMessage = "This domain is not authorized for Firebase authentication.";
+      } else if (error.code === 'auth/invalid-api-key') {
+        errorMessage = "Firebase configuration is invalid. Please check your environment variables.";
+      } else if (error.code === 'auth/configuration-not-found') {
+        errorMessage = "Firebase configuration is missing. Please set up your Firebase credentials.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
 
       toast({
         title: "Google Sign-In Failed",
-        description: "Please try again.",
+        description: errorMessage,
         variant: "error",
       });
     } finally {

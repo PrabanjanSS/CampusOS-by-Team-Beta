@@ -16,34 +16,57 @@ const podiumColors = ['#F59E0B', '#9CA3AF', '#CD7F32'];
 export default function LeaderboardPage() {
   const { user } = useAuth();
   const [selectedMemberName, setSelectedMemberName] = useState<string | null>(null);
-  const [leaderboardData, setLeaderboardData] = useState(mockLeaderboard);
+  const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
+      // Check if user is in demo mode
+      const isDemoMode = user?.id === 'demo';
+      console.log('Leaderboard fetch - User ID:', user?.id, 'Is Demo Mode:', isDemoMode);
+
+      if (isDemoMode) {
+        // Use mock data for demo mode
+        console.log('Using mock data for demo mode');
+        setLeaderboardData(mockLeaderboard);
+        setLoading(false);
+        return;
+      }
+
+      // For logged-in users, always use backend data
+      console.log('Fetching from backend for real user');
       try {
         const response = await api.get('/leaderboard');
+        console.log('Backend response:', response.data);
         if (response.data.success && response.data.leaderboard.length > 0) {
           // Transform backend data to match expected format
-          const transformedData = response.data.leaderboard.map((item: any, index: number) => ({
-            rank: index + 1,
-            name: item.fullName || item.name || 'Unknown',
-            club: item.clubName || item.department || 'General',
-            avatarUrl: item.profilePicture || '',
-            points: item.points || 0,
-          }));
+          const transformedData = response.data.leaderboard
+            .sort((a: any, b: any) => b.points - a.points) // Sort by points descending
+            .map((item: any, index: number) => ({
+              rank: index + 1,
+              name: item.name || 'Unknown',
+              club: item.clubName || item.category || 'General',
+              avatarUrl: item.profilePicture || '',
+              points: item.points || 0,
+            }));
+          console.log('Transformed data:', transformedData);
           setLeaderboardData(transformedData);
+        } else {
+          // Backend returned empty - show empty state for real users
+          console.log('Backend returned empty data');
+          setLeaderboardData([]);
         }
       } catch (error) {
         console.error('Failed to fetch leaderboard:', error);
-        // Fall back to mock data if backend fails
+        // For real users, show empty state on error
+        setLeaderboardData([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchLeaderboard();
-  }, []);
+  }, [user]);
 
   const displayData = leaderboardData.map((p) => {
     if (p.rank === 7 && user) {
@@ -73,6 +96,13 @@ export default function LeaderboardPage() {
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="text-ink-soft">Loading leaderboard...</div>
+        </div>
+      ) : leaderboardData.length === 0 ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <p className="text-ink-soft">No leaderboard data available yet.</p>
+            <p className="mt-1 text-sm text-ink-soft/60">Start participating in events to earn points!</p>
+          </div>
         </div>
       ) : (
         <>
