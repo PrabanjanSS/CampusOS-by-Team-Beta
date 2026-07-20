@@ -277,12 +277,54 @@ const deleteEvent = async(req,res)=>{
 
 };
 
-module.exports={
+const registerForEvent = async (req, res) => {
+    try {
+        const { mode } = req.body;
 
+        const event = await Event.findById(req.params.id);
+
+        if (!event) {
+            return res.status(404).json({
+                success: false,
+                message: "Event not found."
+            });
+        }
+
+        const alreadyRegistered = event.participants.find(
+            participant => participant.user.toString() === req.user._id.toString()
+        );
+
+        if (alreadyRegistered) {
+            return res.status(400).json({
+                success: false,
+                message: "Already Registered."
+            });
+        }
+
+        event.participants.push({
+            user: req.user._id,
+            mode
+        });
+
+        await event.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Registered Successfully."
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+module.exports = {
     createEvent,
     getAllEvents,
     getSingleEvent,
     updateEvent,
-    deleteEvent
-
+    deleteEvent,
+    registerForEvent
 };

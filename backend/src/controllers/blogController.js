@@ -1,60 +1,33 @@
 const Blog = require("../models/Blog");
 
 
-const createBlog = async(req,res)=>{
-
-    try{
-
+const createBlog = async (req, res) => {
+    try {
         let status = "Pending";
 
-
-        if(
-
-            req.user.role === "Club Lead"
-
-            ||
-
-            req.user.role === "Faculty"
-
-
-        ){
-
+        if (
+            req.user.role === "lead" ||
+            req.user.role === "faculty"
+        ) {
             status = "Approved";
-
         }
 
-
         const blog = await Blog.create({
-
             ...req.body,
-
-            createdBy:req.user._id,
-
+            createdBy: req.user._id,
             status
-
         });
-
 
         return res.status(201).json({
-
-            success:true,
+            success: true,
             blog
-
         });
-
-    }
-
-    catch(error){
-
+    } catch (error) {
         return res.status(500).json({
-
-            success:false,
-            message:error.message
-
+            success: false,
+            message: error.message
         });
-
     }
-
 };
 
 

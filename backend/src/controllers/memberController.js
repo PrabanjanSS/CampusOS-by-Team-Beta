@@ -145,13 +145,28 @@ const deleteMember = async(req,res)=>{
 
 };
 
+const getClubMembers = async (req, res) => {
+    try {
+        const members = await User.find({
+            club: req.params.club
+        }).select("-password");
 
+        return res.status(200).json({
+            success: true,
+            members
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
 
-module.exports={
-
+module.exports = {
     getAllMembers,
     getSingleMember,
     updateMember,
-    deleteMember
-
+    deleteMember,
+    getClubMembers
 };

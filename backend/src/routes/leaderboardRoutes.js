@@ -12,7 +12,7 @@ const{
 
     createLeaderboard,
     getLeaderboard,
-    updateLeaderboard,
+    updateLeaderboard
     
 
 }=require("../controllers/leaderboardController");
@@ -27,7 +27,7 @@ router.post(
 
     authorizeRoles(
 
-        "Faculty"
+        "faculty"
 
     ),
 
@@ -53,7 +53,7 @@ router.put(
 
     authorizeRoles(
 
-        "Faculty"
+        "faculty"
 
     ),
 

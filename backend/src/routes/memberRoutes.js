@@ -13,7 +13,8 @@ const{
     getAllMembers,
     getSingleMember,
     updateMember,
-    deleteMember
+    deleteMember,
+    getClubMembers
 
 }=require("../controllers/memberController");
 
@@ -45,7 +46,7 @@ router.put(
 
     authorizeRoles(
 
-        "Faculty"
+        "faculty"
 
     ),
 
@@ -62,11 +63,19 @@ router.delete(
 
     authorizeRoles(
 
-        "Faculty"
+        "faculty"
 
     ),
 
     deleteMember
+
+);
+
+router.get(
+
+    "/club/:club",
+
+    getClubMembers
 
 );
 

@@ -29,8 +29,8 @@ router.post(
 
     authorizeRoles(
 
-        "Club Lead",
-        "Faculty"
+        "lead",
+        "faculty"
     ),
 
     createProject
@@ -55,7 +55,7 @@ router.get(
 
     authorizeRoles(
 
-        "Faculty"
+        "faculty"
 
     ),
 
@@ -82,8 +82,8 @@ router.put(
     protect,
 
     authorizeRoles(
-        "Club Lead",
-        "Faculty"
+        "lead",
+        "faculty"
     ),
 
     updateProject
@@ -99,7 +99,7 @@ router.delete(
     protect,
 
     authorizeRoles(
-        "Faculty"
+        "faculty"
     ),
 
     deleteProject
@@ -115,7 +115,7 @@ router.put(
     protect,
 
     authorizeRoles(
-        "Faculty"
+        "faculty"
     ),
 
     approveProject
@@ -131,7 +131,7 @@ router.put(
     protect,
 
     authorizeRoles(
-        "Faculty"
+        "faculty"
     ),
 
     rejectProject

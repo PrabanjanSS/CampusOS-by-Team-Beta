@@ -29,13 +29,11 @@ router.post(
 
 authorizeRoles(
 
-    "Member",
+    "member",
 
-    "Club Lead",
+    "lead",
 
-    "Faculty",
-
-
+    "faculty"
 
 ),
 
@@ -70,11 +68,10 @@ router.put(
 
     authorizeRoles(
 
-        "Club Lead",
+        "lead",
 
 
-
-        "Faculty"
+        "faculty"
 
     ),
 
@@ -91,11 +88,10 @@ router.delete(
 
     authorizeRoles(
 
-        "Club Lead",
+        "lead",
 
 
-
-        "Faculty"
+        "faculty"
 
     ),
 
@@ -111,7 +107,7 @@ router.put(
 
     authorizeRoles(
 
-        "Faculty"
+        "faculty"
 
     ),
 
@@ -129,7 +125,7 @@ router.put(
 
     authorizeRoles(
 
-        "Faculty"
+        "faculty"
 
     ),
 

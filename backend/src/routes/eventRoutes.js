@@ -15,7 +15,8 @@ const{
     getAllEvents,
     getSingleEvent,
     updateEvent,
-    deleteEvent
+    deleteEvent,
+    registerForEvent
 
 } = require("../controllers/eventController");
 
@@ -32,7 +33,7 @@ router.post(
 
     authorizeRoles(
 
-        "Club Lead"
+        "lead"
 
     ),
 
@@ -67,7 +68,7 @@ router.put(
 
     authorizeRoles(
 
-        "Club Lead"
+        "lead"
 
     ),
 
@@ -85,11 +86,31 @@ router.delete(
 
     authorizeRoles(
 
-        "Faculty"
+        "faculty"
 
     ),
 
     deleteEvent
+
+);
+
+router.post(
+
+    "/register/:id",
+
+    protect,
+
+    authorizeRoles(
+
+        "member",
+
+        "lead",
+
+        "faculty"
+
+    ),
+
+    registerForEvent
 
 );
 

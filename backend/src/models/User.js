@@ -17,10 +17,7 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: true
         },
-
-
         club: {
-
             type: String,
             required: true
         },

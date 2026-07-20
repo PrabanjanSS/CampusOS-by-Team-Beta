@@ -15,7 +15,7 @@ const registerUser = async (req,res)=>{
             fullName,
             email,
             password,
-            department,
+            club,
             year
 
         } = req.body;
@@ -53,7 +53,7 @@ const hashedPassword = await bcrypt.hash(
     fullName,
     email,
     password:hashedPassword,
-    department,
+    club,
     year
 
 });
@@ -229,7 +229,7 @@ const updateProfile = async(req,res)=>{
         const{
 
             fullName,
-            department,
+            club,
             year
 
         } = req.body;
@@ -259,8 +259,8 @@ const updateProfile = async(req,res)=>{
         fullName || user.fullName;
 
 
-        user.department =
-        department || user.department;
+        user.club =
+        club || user.club;
 
 
         user.year =
