@@ -145,8 +145,11 @@ export default function SignupPage() {
     }
 
     try {
+      const yearString = String(data.year);
+      const numericYear = parseInt(yearString.replace(/\D/g, ''), 10);
+
       await registerUser({
-        name: data.name!,
+        fullName: data.name!,       
         email: data.email!,
         club: data.club!,
         year: data.year!,

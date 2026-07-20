@@ -1,32 +1,23 @@
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  updateProfile,
-} from "firebase/auth";
-
-import { auth } from "../firebase";
-
-import type {
-  AuthSession,
-  LoginPayload,
-  RegisterPayload,
-  User,
-} from "../types";
+import { auth } from '../firebase';
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword 
+} from 'firebase/auth';
+import { api } from './api';
+import type { LoginPayload, RegisterPayload, AuthSession } from '../types';
 
 export const authService = {
-  async login(
-    payload: LoginPayload
-  ): Promise<AuthSession> {
-
-    const credential =
-      await signInWithEmailAndPassword(
-        auth,
-        payload.email,
-        payload.password
-      );
+  
+  async register(payload: RegisterPayload): Promise<AuthSession> {
+    // 1. Create the user in Firebase Authentication
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      payload.email,
+      payload.password
+    );
 
     const firebaseUser =
-      credential.user;
+      userCredential.user;
 
     const token =
       await firebaseUser.getIdToken();
@@ -58,19 +49,16 @@ export const authService = {
     };
   },
 
-  async register(
-    payload: RegisterPayload
-  ): Promise<AuthSession> {
-
-    const credential =
-      await createUserWithEmailAndPassword(
-        auth,
-        payload.email,
-        payload.password
-      );
+  async login(payload: LoginPayload): Promise<AuthSession> {
+    // 1. Verify credentials with Firebase
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      payload.email,
+      payload.password
+    );
 
     await updateProfile(
-      credential.user,
+      userCredential.user,
       {
         displayName:
           payload.name,
@@ -83,11 +71,11 @@ export const authService = {
     localStorage.setItem('campusos_role_map', JSON.stringify(roleMap));
 
     const token =
-      await credential.user.getIdToken();
+      await userCredential.user.getIdToken();
 
     const user: User = {
       id:
-        credential.user.uid,
+        userCredential.user.uid,
 
       name:
         payload.name,
@@ -105,9 +93,9 @@ export const authService = {
         payload.year,
     };
 
-    return {
+    return{
       token,
-      user,
+      user
     };
   },
 
@@ -155,6 +143,3 @@ export const authService = {
     );
   },
 };
-
-export default authService;
-
