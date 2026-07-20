@@ -56,7 +56,7 @@ export interface LoginPayload {
 }
 
 export interface RegisterPayload {
-  name: string;
+  fullName: string;
   email: string;
   club: string;
   year: string;

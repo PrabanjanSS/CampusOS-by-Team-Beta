@@ -1,55 +1,44 @@
-import {
+import { auth } from '../firebase';
+import { 
+  createUserWithEmailAndPassword, 
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  updateProfile,
-} from "firebase/auth";
-
-import { auth } from "../firebase";
-
-import type {
-  AuthSession,
-  LoginPayload,
-  RegisterPayload,
-  User,
-} from "../types";
+  updateProfile 
+} from 'firebase/auth';
+import type { LoginPayload, RegisterPayload, AuthSession, User } from '../types';
 
 export const authService = {
-  async login(
-    payload: LoginPayload
-  ): Promise<AuthSession> {
-
-    const credential =
-      await signInWithEmailAndPassword(
-        auth,
-        payload.email,
-        payload.password
-      );
+  
+  async register(payload: RegisterPayload): Promise<AuthSession> {
+    // 1. Create the user in Firebase Authentication
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      payload.email,
+      payload.password
+    );
 
     const firebaseUser =
-      credential.user;
+      userCredential.user;
+
+    // Update Firebase profile with display name
+    await updateProfile(firebaseUser, {
+      displayName: payload.fullName,
+    });
 
     const token =
       await firebaseUser.getIdToken();
 
-    // Auto-detect role from stored mapping or use provided role as fallback
+    // Store role mapping for auto-detection during login
     const roleMap = JSON.parse(localStorage.getItem('campusos_role_map') || '{}');
-    const detectedRole = roleMap[payload.email.toLowerCase()] || payload.role;
+    roleMap[payload.email.toLowerCase()] = payload.role;
+    localStorage.setItem('campusos_role_map', JSON.stringify(roleMap));
 
     const user: User = {
       id: firebaseUser.uid,
-
-      name:
-        firebaseUser.displayName ??
-        "Campus User",
-
-      email:
-        firebaseUser.email ?? "",
-
-      role: detectedRole,
-
-      club: "",
-
-      year: "",
+      name: payload.fullName,
+      email: payload.email,
+      role: payload.role,
+      club: payload.club,
+      year: payload.year,
     };
 
     return {
@@ -58,23 +47,12 @@ export const authService = {
     };
   },
 
-  async register(
-    payload: RegisterPayload
-  ): Promise<AuthSession> {
-
-    const credential =
-      await createUserWithEmailAndPassword(
-        auth,
-        payload.email,
-        payload.password
-      );
-
-    await updateProfile(
-      credential.user,
-      {
-        displayName:
-          payload.name,
-      }
+  async login(payload: LoginPayload): Promise<AuthSession> {
+    // 1. Verify credentials with Firebase
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      payload.email,
+      payload.password
     );
 
     // Store role mapping for auto-detection during login
@@ -83,26 +61,15 @@ export const authService = {
     localStorage.setItem('campusos_role_map', JSON.stringify(roleMap));
 
     const token =
-      await credential.user.getIdToken();
+      await userCredential.user.getIdToken();
 
     const user: User = {
-      id:
-        credential.user.uid,
-
-      name:
-        payload.name,
-
-      email:
-        payload.email,
-
-      role:
-        payload.role,
-
-      club:
-        payload.club,
-
-      year:
-        payload.year,
+      id: userCredential.user.uid,
+      name: userCredential.user.displayName ?? "User",
+      email: payload.email,
+      role: payload.role,
+      club: "",
+      year: "",
     };
 
     return {
@@ -155,6 +122,3 @@ export const authService = {
     );
   },
 };
-
-export default authService;
-

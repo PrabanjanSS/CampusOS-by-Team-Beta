@@ -8,7 +8,7 @@ import type { Poll } from "../../types/poll";
 interface Props {
   open: boolean;
   onClose: () => void;
-  onCreate: (poll: Poll) => void;
+  onCreate: (poll: Poll) => Promise<void> | void;
 }
 
 export default function CreatePollModal({
@@ -22,6 +22,7 @@ export default function CreatePollModal({
   const [description, setDescription] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
   const [options, setOptions] = useState(["", ""]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const updateOption = (index: number, value: string) => {
     const copy = [...options];
@@ -38,7 +39,16 @@ export default function CreatePollModal({
     setOptions(options.filter((_, i) => i !== index));
   };
 
-  const handleCreate = () => {
+  const resetForm = () => {
+    setTitle("");
+    setDescription("");
+    setExpiresAt("");
+    setOptions(["", ""]);
+  };
+
+  const handleCreate = async () => {
+    if (isSubmitting) return;
+
     if (!title || !description || !expiresAt) {
       toast({
         title: "Missing Information",
@@ -72,19 +82,21 @@ export default function CreatePollModal({
       })),
     };
 
-    onCreate(poll);
+    setIsSubmitting(true);
 
-    toast({
-      title: "Success",
-      description: "Poll created successfully.",
-      variant: "success",
-    });
-
-    setTitle("");
-    setDescription("");
-    setExpiresAt("");
-    setOptions(["", ""]);
-    onClose();
+    try {
+      await onCreate(poll);
+      resetForm();
+      onClose();
+    } catch (error) {
+      toast({
+        title: "Creation Failed",
+        description: error instanceof Error ? error.message : "Unable to create poll.",
+        variant: "error",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -160,10 +172,10 @@ export default function CreatePollModal({
         </div>
 
         <div className="mt-6 flex justify-end gap-3">
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button onClick={handleCreate} leftIcon="Check">
+          <Button onClick={handleCreate} leftIcon="Check" loading={isSubmitting}>
             Create Poll
           </Button>
         </div>

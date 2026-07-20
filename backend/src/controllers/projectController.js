@@ -61,19 +61,11 @@ const project = await Project.create({
 const getAllProjects = async(req,res)=>{
 
     try{
-
-        const projects = await Project.find({
-
-    status:"Approved"
-
-});
-
+        const projects = await Project.find({});
 
         return res.status(200).json({
-
             success:true,
             projects
-
         });
 
     }

@@ -1,234 +1,267 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Clock, MapPin, Users, Filter } from 'lucide-react';
-import { Badge } from '../../components/ui/Badge';
+import { useEffect, useState } from 'react';
+import { CalendarDays, Clock3, MapPin, AlertTriangle } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
-import { SearchBar } from '../../components/ui/SearchBar';
-import { FadeIn, StaggerGroup, StaggerItem } from '../../components/ui/motion';
-import { mockEvents } from '../../utils/mockData';
-import { EventActionModal, type EventActionDetails } from '../../components/events/EventActionModal';
-import { useToast } from '../../context/ToastContext';
-import { useAuth } from '../../context/AuthContext';
 import { Modal } from '../../components/ui/Modal';
-
-const statusTone = {
-  upcoming: 'navy',
-  live: 'success',
-  completed: 'neutral',
-} as const;
-
-const filters = ['All', 'Upcoming', 'Live', 'Completed'];
+import { FadeIn } from '../../components/ui/motion';
+import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
+import { eventsService, type Event, type EventPayload } from '../../services/events';
+import { EventActionModal, type EventActionDetails } from '../../components/events/EventActionModal';
 
 export default function EventsPage() {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState('All');
-  const [selectedEvent, setSelectedEvent] = useState<EventActionDetails | null>(null);
-  const [events, setEvents] = useState(() => {
-    const saved = localStorage.getItem('campusos_events');
-    return saved ? JSON.parse(saved) : mockEvents;
-  });
+  const canCreate = user?.role === 'lead' || user?.role === 'faculty';
+  const [events, setEvents] = useState<Event[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [registeredList, setRegisteredList] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<EventActionDetails | null>(null);
+
+  const getRegisteredEventIds = () => {
+    try {
+      const saved = localStorage.getItem('registeredEvents');
+      return saved ? (JSON.parse(saved) as string[]) : [];
+    } catch {
+      return [];
+    }
+  };
 
   useEffect(() => {
-    const loadRegs = () => {
-      const saved = localStorage.getItem('registeredEvents');
-      setRegisteredList(saved ? JSON.parse(saved) : []);
+    let isMounted = true;
+
+    const loadEvents = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await eventsService.getAll();
+        if (!isMounted) return;
+        const registeredIds = getRegisteredEventIds();
+        setEvents(
+          (response.events ?? []).map((item) => ({
+            ...item,
+            isRegistered: registeredIds.includes(String(item.id ?? item.title)),
+          }))
+        );
+      } catch (err) {
+        if (!isMounted) return;
+
+        const message = err instanceof Error ? err.message : 'Unable to load events.';
+        setError(message);
+        toast({ title: 'Error', description: message, variant: 'error' });
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
     };
-    loadRegs();
 
-    window.addEventListener('campusos_event_registered', loadRegs);
-    return () => window.removeEventListener('campusos_event_registered', loadRegs);
-  }, []);
+    void loadEvents();
 
-  const handleCreateEvent = (e: React.FormEvent) => {
-    e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
-    const title = formData.get('title') as string;
-    const date = formData.get('date') as string;
-    const time = formData.get('time') as string;
-    const location = formData.get('location') as string;
-    const tag = formData.get('tag') as string;
+    return () => {
+      isMounted = false;
+    };
+  }, [toast]);
 
-    if (!title || !date || !time || !location) return;
+  const handleCreateEvent = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
-    // Format date for display (e.g., "Jul 20")
-    const dateObj = new Date(date);
-    const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    if (isSubmitting) return;
 
-    const newEv = {
-      id: 'ev_' + Date.now(),
-      title,
-      date: formattedDate,
-      time,
-      location,
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const dateText = String(formData.get('date') || '').trim();
+    const timeText = String(formData.get('time') || '').trim();
+    const [day, month, year] = dateText.split('-').map((value) => Number(value));
+    const [hours, minutes] = timeText.split(':').map((value) => Number(value));
+
+    const eventDate =
+      day && month && year && !Number.isNaN(day) && !Number.isNaN(month) && !Number.isNaN(year)
+        ? new Date(year, month - 1, day, hours || 0, minutes || 0, 0).toISOString()
+        : dateText;
+
+    const payload: EventPayload = {
+      title: String(formData.get('title') || '').trim(),
+      description: String(formData.get('categoryTag') || '').trim(),
+      venue: String(formData.get('location') || '').trim(),
+      date: eventDate,
+    };
+
+    if (!payload.title || !dateText || !timeText || !payload.venue || !payload.description) {
+      toast({
+        title: 'Missing Information',
+        description: 'Please fill all required fields.',
+        variant: 'warning',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await eventsService.create(payload);
+      const createdEvent = response.event ?? { ...payload, isRegistered: false };
+      setEvents((prev) => [{ ...createdEvent, isRegistered: false }, ...prev]);
+      form.reset();
+      setIsCreateOpen(false);
+
+      toast({
+        title: 'Success',
+        description: 'Event created successfully.',
+        variant: 'success',
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unable to create event.';
+      toast({ title: 'Error', description: message, variant: 'error' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const openEventRegistration = (event: Event) => {
+    setSelectedEvent({
+      id: event.id,
+      title: event.title,
+      date: event.date,
+      time: '10:00 AM',
+      location: event.venue,
       attendees: 0,
-      status: 'upcoming' as const,
-      tag: tag || 'General',
-      // Store ISO date for calendar sync
-      isoDate: date,
-      isoTime: time,
-    };
-
-    const updated = [newEv, ...events];
-    setEvents(updated);
-    localStorage.setItem('campusos_events', JSON.stringify(updated));
-    setIsCreateOpen(false);
-    toast({
-      title: 'Event Created Successfully',
-      description: `"${title}" has been scheduled for ${formattedDate} at ${time}.`,
-      variant: 'success',
+      status: 'upcoming',
     });
   };
 
-  const filtered = events.filter((e: any) => {
-    const matchesQuery = e.title.toLowerCase().includes(query.toLowerCase());
-    const matchesFilter = filter === 'All' || e.status === filter.toLowerCase();
-    return matchesQuery && matchesFilter;
-  });
-
-  const canCreate = user?.role === 'lead' || user?.role === 'faculty';
+  const handleEventRegistered = (eventId: string) => {
+    setEvents((prev) =>
+      prev.map((item) =>
+        String(item.id ?? item.title) === eventId
+          ? { ...item, isRegistered: true }
+          : item
+      )
+    );
+  };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-12">
       <FadeIn>
         <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">Events</h1>
-            <p className="mt-1 text-sm text-ink-soft">Browse, register, and manage club events.</p>
+            <p className="mt-1 text-sm text-ink-soft">Live data loaded from the events service.</p>
           </div>
           {canCreate && (
-            <Button leftIcon="Plus" onClick={() => setIsCreateOpen(true)} magnetic>
-              Create Event
+            <Button type="button" leftIcon="Plus" onClick={() => setIsCreateOpen(true)}>
+              Create New Event
             </Button>
           )}
         </div>
       </FadeIn>
 
-      <FadeIn delay={0.08}>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <SearchBar value={query} onChange={setQuery} placeholder="Search events…" className="sm:max-w-xs" />
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-ink-soft" />
-            {filters.map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
-                  filter === f ? 'bg-navy text-white shadow-soft' : 'bg-white text-ink-soft hover:text-navy'
-                }`}
-              >
-                {f}
-              </button>
-            ))}
+      {isLoading ? (
+        <div className="card-surface flex items-center gap-3 p-6 text-sm text-ink-soft">
+          <span className="h-5 w-5 animate-spin rounded-full border-2 border-navy/20 border-t-navy" />
+          Loading events...
+        </div>
+      ) : error ? (
+        <div className="card-surface flex items-start gap-3 border border-danger/20 bg-danger/5 p-5 text-sm text-ink-soft">
+          <AlertTriangle className="mt-0.5 h-4 w-4 text-danger" />
+          <div>
+            <p className="font-semibold text-ink">Unable to load events</p>
+            <p className="mt-1">{error}</p>
           </div>
         </div>
-      </FadeIn>
-
-      <StaggerGroup className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {filtered.map((e: any) => (
-          <StaggerItem key={e.id}>
-            <motion.div whileHover={{ y: -6 }} className="card-surface group overflow-hidden transition-shadow hover:shadow-lift">
-              <div className="relative h-32 overflow-hidden bg-gradient-to-br from-navy to-navy-400">
-                <div className="absolute inset-0 bg-navy-radial opacity-50" />
-                <div className="absolute left-4 top-4">
-                  <Badge tone={statusTone[e.status as keyof typeof statusTone]} dot>{e.status}</Badge>
+      ) : events.length === 0 ? (
+        <div className="card-surface p-10 text-center text-sm text-ink-soft">
+          <p>No events found.</p>
+          {canCreate && (
+            <div className="mt-4 flex justify-center">
+              <Button type="button" leftIcon="Plus" onClick={() => setIsCreateOpen(true)}>
+                Create New Event
+              </Button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {events.map((event) => (
+            <div key={event.id ?? event.title} className="card-surface p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-ink">{event.title}</h2>
+                  <p className="mt-1 line-clamp-3 text-sm text-ink-soft">{event.description}</p>
                 </div>
-                <div className="absolute bottom-4 right-4 flex h-12 w-12 flex-col items-center justify-center rounded-xl bg-white/15 text-white backdrop-blur">
-                  <span className="text-[0.65rem] font-medium leading-none">{e.date.split(' ')[0]}</span>
-                  <span className="text-lg font-bold leading-tight">{e.date.split(' ')[1]}</span>
-                </div>
+                <span className="rounded-full bg-navy/10 px-3 py-1 text-xs font-semibold text-navy">Event</span>
               </div>
-              <div className="p-5">
-                <Badge tone="sand">{e.tag}</Badge>
-                <h3 className="mt-2.5 text-base font-semibold text-ink">{e.title}</h3>
-                <div className="mt-3 space-y-1.5 text-xs text-ink-soft">
-                  <p className="inline-flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> {e.time}</p>
-                  <p className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> {e.location}</p>
-                  <p className="inline-flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> {e.attendees} attending</p>
-                </div>
-                {(() => {
-                  const isRegistered = registeredList.includes(String(e.id || e.title));
-                  const isCompleted = e.status === 'completed';
-                  const isLive = e.status === 'live';
 
-                  return (
-                    <Button
-                      variant={isRegistered && !isLive ? 'outline' : 'secondary'}
-                      className="mt-4 w-full"
-                      size="sm"
-                      disabled={isRegistered && !isLive && !isCompleted}
-                      onClick={() => setSelectedEvent(e)}
-                    >
-                     {
-  isCompleted
-    ? 'View Recap'
-    : isLive
-    ? 'Join Now'
-    : isRegistered
-    ? '✓ Registered'
-    : 'Register'
-}
-                    </Button>
-                  );
-                })()}
+              <div className="mt-4 space-y-2 text-sm text-ink-soft">
+                <p className="inline-flex items-center gap-2"><CalendarDays className="h-4 w-4" /> {event.date}</p>
+                <p className="inline-flex items-center gap-2"><MapPin className="h-4 w-4" /> {event.venue}</p>
+                <p className="inline-flex items-center gap-2"><Clock3 className="h-4 w-4" /> {event.registrationLink || 'No registration link provided'}</p>
               </div>
-            </motion.div>
-          </StaggerItem>
-        ))}
-      </StaggerGroup>
-      <EventActionModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />
 
-      {isCreateOpen && (
-        <Modal
-          open={isCreateOpen}
-          onClose={() => setIsCreateOpen(false)}
-          title="Create New Event"
-          description="Schedule a new event for your club members"
-          size="md"
-        >
-          <form onSubmit={handleCreateEvent} className="space-y-4">
-            <div>
-              <label className="label-base">Event Title</label>
-              <input name="title" required className="input-base mt-1.5 w-full" placeholder="e.g. Hackathon Kickoff" />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="label-base">Date</label>
-                <input 
-                  name="date" 
-                  type="date" 
-                  required 
-                  className="input-base mt-1.5 w-full" 
-                />
-              </div>
-              <div>
-                <label className="label-base">Time</label>
-                <input 
-                  name="time" 
-                  type="time" 
-                  required 
-                  className="input-base mt-1.5 w-full" 
-                />
+              <div className="mt-5">
+                <Button
+                  type="button"
+                  variant={event.isRegistered ? 'outline' : 'secondary'}
+                  className="w-full"
+                  disabled={Boolean(event.isRegistered)}
+                  onClick={() => openEventRegistration(event)}
+                >
+                  {event.isRegistered ? 'Registered' : 'Register'}
+                </Button>
               </div>
             </div>
-            <div>
-              <label className="label-base">Location</label>
-              <input name="location" required className="input-base mt-1.5 w-full" placeholder="e.g. Seminar Hall" />
-            </div>
-            <div>
-              <label className="label-base">Category Tag</label>
-              <input name="tag" className="input-base mt-1.5 w-full" placeholder="e.g. Workshop" />
-            </div>
-            <div className="mt-6 flex justify-end gap-3">
-              <Button variant="secondary" type="button" onClick={() => setIsCreateOpen(false)}>Cancel</Button>
-              <Button type="submit" leftIcon="Plus">Create Event</Button>
-            </div>
-          </form>
-        </Modal>
+          ))}
+        </div>
       )}
+
+      <Modal
+        open={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        title="Create New Event"
+        description="Schedule a new event for your club members"
+        size="md"
+      >
+        <form onSubmit={handleCreateEvent} className="space-y-4">
+          <div>
+            <label className="label-base">Event Title</label>
+            <input name="title" required className="input-base mt-1.5 w-full" placeholder="e.g. Hackathon Kickoff" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label-base">Date</label>
+              <input name="date" type="text" required className="input-base mt-1.5 w-full" placeholder="dd-mm-yyyy" />
+            </div>
+            <div>
+              <label className="label-base">Time</label>
+              <input name="time" type="time" required className="input-base mt-1.5 w-full" />
+            </div>
+          </div>
+          <div>
+            <label className="label-base">Location</label>
+            <input name="location" required className="input-base mt-1.5 w-full" placeholder="e.g. Seminar Hall" />
+          </div>
+          <div>
+            <label className="label-base">Category Tag</label>
+            <input name="categoryTag" required className="input-base mt-1.5 w-full" placeholder="e.g. Workshop" />
+          </div>
+          <div className="mt-6 flex justify-end gap-3">
+            <Button variant="secondary" type="button" onClick={() => setIsCreateOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" leftIcon="Plus" loading={isSubmitting}>
+              + Create Event
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      <EventActionModal
+        event={selectedEvent}
+        onClose={() => setSelectedEvent(null)}
+        onRegistered={handleEventRegistered}
+      />
     </div>
   );
 }

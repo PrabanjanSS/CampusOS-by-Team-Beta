@@ -6,6 +6,7 @@ import { auth } from '../firebase';
 import type { AuthSession, LoginPayload, RegisterPayload, Role, User } from '../types';
 import { authService } from '../services/auth';
 
+
 interface AuthContextValue {
   user: User | null;
   token: string | null;
