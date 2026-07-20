@@ -19,7 +19,11 @@ const userSchema = new mongoose.Schema(
         },
         club: {
             type: String,
-            required: true
+            required: false
+        },
+        department: {
+            type: String,
+            required: false
         },
         year: {
             type: Number,
@@ -27,12 +31,16 @@ const userSchema = new mongoose.Schema(
         },
         role: {
             type: String,
-            enum: ["member", "lead", "faculty"],
+            enum: ["member", "lead", "faculty", "Student", "Club Lead", "Faculty Coordinator"],
             default: "member"
         },
         profilePicture: {
             type: String,
             default: ""
+        },
+        points: {
+            type: Number,
+            default: 0
         }
     },
     {

@@ -102,7 +102,7 @@ CampusOS-Team-Beta/
    cd backend
    npm run dev
    ```
-   Backend will run on `http://localhost:5001`
+   Backend will run on `http://localhost:5004`
 
    **Terminal 2 - Start Frontend:**
    ```bash
@@ -121,12 +121,12 @@ VITE_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
 VITE_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
 VITE_FIREBASE_APP_ID=your_firebase_app_id
 VITE_FIREBASE_MEASUREMENT_ID=your_firebase_measurement_id
-VITE_API_URL=http://localhost:5001/api
+VITE_API_URL=http://localhost:5004/api
 ```
 
 ### Backend (backend/.env)
 ```
-PORT=5001
+PORT=5004
 MONGO_URI=mongodb://localhost:27017/campusos
 JWT_SECRET=your_jwt_secret_key
 NODE_ENV=development

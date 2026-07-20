@@ -36,33 +36,33 @@ const createLeaderboard = async(req,res)=>{
 
 
 
-const getLeaderboard = async(req,res)=>{
+const User = require("../models/User");
 
-    try{
+const getLeaderboard = async (req, res) => {
+    try {
+        const users = await User.find()
+            .select("fullName email club role points department")
+            .sort({ points: -1 })
+            .limit(50);
 
-        const leaderboard = await Leaderboard.find();
-
+        const leaderboard = users.map((user, index) => ({
+            rank: index + 1,
+            name: user.fullName,
+            clubName: user.department || user.club || "N/A",
+            points: user.points || 0,
+            category: user.role
+        }));
 
         return res.status(200).json({
-
-            success:true,
+            success: true,
             leaderboard
-
         });
-
-    }
-
-    catch(error){
-
+    } catch (error) {
         return res.status(500).json({
-
-            success:false,
-            message:error.message
-
+            success: false,
+            message: error.message
         });
-
     }
-
 };
 
 
