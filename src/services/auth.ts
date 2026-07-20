@@ -1,10 +1,10 @@
 import { auth } from '../firebase';
 import { 
   createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword 
+  signInWithEmailAndPassword,
+  updateProfile 
 } from 'firebase/auth';
-import { api } from './api';
-import type { LoginPayload, RegisterPayload, AuthSession } from '../types';
+import type { LoginPayload, RegisterPayload, AuthSession, User } from '../types';
 
 export const authService = {
   
@@ -19,28 +19,26 @@ export const authService = {
     const firebaseUser =
       userCredential.user;
 
+    // Update Firebase profile with display name
+    await updateProfile(firebaseUser, {
+      displayName: payload.fullName,
+    });
+
     const token =
       await firebaseUser.getIdToken();
 
-    // Auto-detect role from stored mapping or use provided role as fallback
+    // Store role mapping for auto-detection during login
     const roleMap = JSON.parse(localStorage.getItem('campusos_role_map') || '{}');
-    const detectedRole = roleMap[payload.email.toLowerCase()] || payload.role;
+    roleMap[payload.email.toLowerCase()] = payload.role;
+    localStorage.setItem('campusos_role_map', JSON.stringify(roleMap));
 
     const user: User = {
       id: firebaseUser.uid,
-
-      name:
-        firebaseUser.displayName ??
-        "Campus User",
-
-      email:
-        firebaseUser.email ?? "",
-
-      role: detectedRole,
-
-      club: "",
-
-      year: "",
+      name: payload.fullName,
+      email: payload.email,
+      role: payload.role,
+      club: payload.club,
+      year: payload.year,
     };
 
     return {
@@ -57,14 +55,6 @@ export const authService = {
       payload.password
     );
 
-    await updateProfile(
-      userCredential.user,
-      {
-        displayName:
-          payload.name,
-      }
-    );
-
     // Store role mapping for auto-detection during login
     const roleMap = JSON.parse(localStorage.getItem('campusos_role_map') || '{}');
     roleMap[payload.email.toLowerCase()] = payload.role;
@@ -74,28 +64,17 @@ export const authService = {
       await userCredential.user.getIdToken();
 
     const user: User = {
-      id:
-        userCredential.user.uid,
-
-      name:
-        payload.name,
-
-      email:
-        payload.email,
-
-      role:
-        payload.role,
-
-      club:
-        payload.club,
-
-      year:
-        payload.year,
+      id: userCredential.user.uid,
+      name: userCredential.user.displayName ?? "User",
+      email: payload.email,
+      role: payload.role,
+      club: "",
+      year: "",
     };
 
-    return{
+    return {
       token,
-      user
+      user,
     };
   },
 
